@@ -263,9 +263,9 @@ export default function ModernLayout({ children }) {
                     </Link>
                   </li>
                   <li>
-                    <a href="/uc" className="text-gray-600 hover:text-emerald-600">
+                    <Link href="/uc" className="text-gray-600 hover:text-emerald-600">
                       Report an Issue
-                    </a>
+                    </Link>
                   </li>
                 </ul>
               </div>

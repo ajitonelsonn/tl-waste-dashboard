@@ -698,12 +698,9 @@ export default function PublicReportsPage() {
                 <li>Follow proper waste disposal guidelines to prevent new incidents</li>
               </ul>
               <div className="mt-6 flex flex-col sm:flex-row gap-4">
-                <a
-                  href="/download"
-                  className="inline-flex items-center justify-center py-2.5 px-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
-                >
-                  Download Mobile App
-                </a>
+                <Link href="/download" className="inline-flex items-center justify-center py-2.5 px-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium">
+                Download Mobile App
+                </Link>
                 <Link 
                   href="/about"
                   className="inline-flex items-center justify-center py-2.5 px-4 bg-white border border-emerald-200 text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors text-sm font-medium"
