@@ -80,10 +80,6 @@ Visit the live dashboard: [TL Waste Dashboard](https://tlwaster.site)
 ```
 tl-waste-dashboard/
 ├── components/          # Reusable UI components
-│   ├── dashboard/       # Dashboard-specific components
-│   ├── maps/            # Map visualization components
-│   ├── charts/          # Data visualization components
-│   └── layout/          # Page layout components
 ├── pages/               # Next.js pages and API routes
 ├── public/              # Static assets and images
 ├── styles/              # Global styles and Tailwind config
