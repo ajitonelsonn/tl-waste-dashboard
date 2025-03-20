@@ -1,5 +1,3 @@
-Based on your request, I'll help improve the README for the TL Waste Dashboard. Here's an enhanced version:
-
 # TL Waste Dashboard
 
 ![tag:innovation-lab](https://img.shields.io/badge/innovation--lab-3D8BD3)
