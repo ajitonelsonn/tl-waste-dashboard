@@ -1,40 +1,146 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+Based on your request, I'll help improve the README for the TL Waste Dashboard. Here's an enhanced version:
 
-## Getting Started
+# TL Waste Dashboard
 
-First, run the development server:
+![tag:innovation-lab](https://img.shields.io/badge/innovation--lab-3D8BD3)
+![tag:waste-management](https://img.shields.io/badge/waste--management-4CAF50)
+![Next.js](https://img.shields.io/badge/Nextjs-15-black)
+![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+A comprehensive web dashboard for visualizing and analyzing waste management data across Timor-Leste. This platform provides government officials and the public with real-time insights into waste distribution, hotspots, and trends to support data-driven decision making for environmental management.
+
+## 🌟 Features
+
+- **Interactive Geospatial Map**: Visualize waste reports, severity levels, and hotspots across regions
+- **Real-time Analytics Dashboard**: Monitor key waste management metrics with customizable date ranges
+- **Waste Type Distribution**: Analyze proportions of different waste categories (plastic, organic, etc.)
+- **Severity Heatmaps**: Identify critical areas requiring urgent intervention
+- **Trend Analysis**: Track waste reporting patterns over time with interactive charts
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
+
+## 🖥️ Live Demo
+
+Visit the live dashboard: [TL Waste Dashboard](https://tlwaster.site)
+
+![Dashboard Overview](public/dashboard-screen.png)
+
+## 🛠️ Technologies
+
+- **Frontend Framework**: Next.js 15 (React)
+- **Styling**: Tailwind CSS with custom components
+- **Data Visualization**: 
+  - Tremor for dashboard components
+  - Chart.js for interactive analytics
+  - Leaflet for geospatial mapping
+- **Deployment**: Vercel platform with CI/CD integration
+- **Data Source**: REST API connection to TL Waste Monitoring backend
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js (v16 or higher)
+- npm or yarn
+- Git
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/ajitonelsonn/tl-waste-dashboard.git
+   cd tl-waste-dashboard
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+3. Configure environment variables:
+   Create a `.env.local` file with the following:
+   ```
+   DB_HOST=your_db_host
+   DB_NAME=tl_waste_monitoring
+   DB_USER=your_db_user
+   DB_PASSWORD=your_db_password
+   DB_PORT=your_db_port
+   ```
+
+4. Run the development server:
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## 📂 Project Structure
+
+```
+tl-waste-dashboard/
+├── components/          # Reusable UI components
+│   ├── dashboard/       # Dashboard-specific components
+│   ├── maps/            # Map visualization components
+│   ├── charts/          # Data visualization components
+│   └── layout/          # Page layout components
+├── pages/               # Next.js pages and API routes
+├── public/              # Static assets and images
+├── styles/              # Global styles and Tailwind config
+├── utils/               # Helper functions and data processing
+├── hooks/               # Custom React hooks
+└── context/             # React context for state management
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔑 Key Features Explained
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+### Interactive Waste Map
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+Our geospatial visualization uses Leaflet to display waste reports across Timor-Leste. Reports are color-coded by severity and clustered for better performance. Users can filter by waste type, date range, and severity level.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+![Waste Map](public/map-screen.png)
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Hotspot Analysis
 
-## Learn More
+The dashboard automatically identifies areas with recurring waste issues, helping officials prioritize cleanup efforts and resource allocation.
 
-To learn more about Next.js, take a look at the following resources:
+![Hotspots Analysis](public/hotspots-screen.png)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+### Data-Driven Insights
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+All visualizations are powered by real data from citizen reports, processed by our AI analysis backend. This ensures that decision-makers have access to accurate, up-to-date information about waste management challenges.
 
-## Deploy on Vercel
+## 🌍 Integration with TL Digital Waste Monitoring Network
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This dashboard is a critical component of the larger TL Digital Waste Monitoring ecosystem:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+1. Citizens report waste issues via the mobile app (TL Waste Report)
+2. Reports with images and location data are processed by AI agents
+3. Data is analyzed, classified, and stored in the central database
+4. This dashboard pulls data from the central system and presents actionable insights
+5. Government officials use these insights to coordinate cleanup efforts
+
+
+## 📚 Related Repositories
+
+This project is part of the TL Digital Waste Monitoring Network:
+
+- [TL Digital Waste Monitoring Network](https://github.com/ajitonelsonn/TLWasteR) - Main project overview
+- [TL-WASTE-MONITORING](https://github.com/ajitonelsonn/tl-waste-monitoring) - Backend API and AI agents
+- [TL Waste Report App](https://github.com/ajitonelsonn/tl_waste_report) - Flutter mobile app for citizens
+
+## 📜 License
+
+This project was developed for the Global AI Agents League Hackathon.
+
+## 🙏 Acknowledgments
+
+- [Fetch.ai](https://fetch.ai/) for the Agentverse platform and hackathon
+- The people of Timor-Leste for inspiring this environmental solution
+- All contributors and environmental conservation advocates
+
+---
+
+For questions or support, please open an issue on GitHub or contact our team.
