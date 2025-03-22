@@ -1,62 +1,62 @@
 // pages/map.js
-import { useState, useEffect } from 'react';
-import Head from 'next/head';
-import dynamic from 'next/dynamic';
-import { useMapData, useWasteTypes } from '../lib/api';
-import { 
-  RefreshCw, 
-  Filter, 
-  ChevronDown, 
-  Map as MapIcon, 
-  Layers, 
-  Calendar, 
+import { useState, useEffect } from "react";
+import Head from "next/head";
+import dynamic from "next/dynamic";
+import { useMapData, useWasteTypes } from "../lib/api";
+import {
+  RefreshCw,
+  Filter,
+  ChevronDown,
+  Map as MapIcon,
+  Layers,
+  Calendar,
   Clock,
   AlertTriangle,
   Trash2,
   X,
-  Info
-} from 'lucide-react';
-import ModernLayout from '../components/ModernLayout';
+  Info,
+} from "lucide-react";
+import ModernLayout from "../components/ModernLayout";
 
 // Dynamically import map component to prevent SSR issues
-const DynamicMap = dynamic(() => import('../components/ModernMap'), {
+const DynamicMap = dynamic(() => import("../components/ModernMap"), {
   ssr: false,
   loading: () => (
     <div className="flex justify-center items-center h-[calc(100vh-200px)] bg-gray-50">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mb-4"></div>
       <p className="text-emerald-600 font-medium text-lg">Loading map...</p>
     </div>
-  )
+  ),
 });
 
 export default function ModernMapPage() {
   // State for filters and UI
   const [filters, setFilters] = useState({
-    status: '',
-    waste_type: '',
-    priority: '',
+    status: "",
+    waste_type: "",
+    priority: "",
     days: 30,
     showHotspots: true,
     showReports: true,
-    severity: ''
+    severity: "",
   });
-  
+
   const [showFilters, setShowFilters] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeView, setActiveView] = useState('all'); // 'all', 'reports', 'hotspots'
+  const [activeView, setActiveView] = useState("all"); // 'all', 'reports', 'hotspots'
   const [mapStats, setMapStats] = useState({
     totalReports: 0,
     totalHotspots: 0,
-    highSeverity: 0
+    highSeverity: 0,
   });
-  
+
   // Get data from API
   const { wasteTypes, isLoading: wasteTypesLoading } = useWasteTypes();
-  const { 
-    mapData, 
-    isLoading, 
-    isError, 
-    refresh: refreshMap 
+  const {
+    mapData,
+    isLoading,
+    isError,
+    refresh: refreshMap,
   } = useMapData(filters);
 
   // Update map stats when data changes
@@ -65,16 +65,18 @@ export default function ModernMapPage() {
       setMapStats({
         totalReports: mapData.reports?.length || 0,
         totalHotspots: mapData.hotspots?.length || 0,
-        highSeverity: (mapData.reports || []).filter(r => r.severity_score > 7).length
+        highSeverity: (mapData.reports || []).filter(
+          (r) => r.severity_score > 7
+        ).length,
       });
     }
   }, [mapData]);
 
   // Handle filter changes
   function handleFilterChange(field, value) {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   }
 
@@ -87,16 +89,16 @@ export default function ModernMapPage() {
   // Clear all filters
   function clearFilters() {
     setFilters({
-      status: '',
-      waste_type: '',
-      priority: '',
+      status: "",
+      waste_type: "",
+      priority: "",
       days: 30,
       showHotspots: true,
       showReports: true,
-      severity: ''
+      severity: "",
     });
   }
-  
+
   // Function to refresh data
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -112,16 +114,16 @@ export default function ModernMapPage() {
   // Handle view toggle
   function handleViewToggle(view) {
     setActiveView(view);
-    
-    if (view === 'all') {
-      handleFilterChange('showReports', true);
-      handleFilterChange('showHotspots', true);
-    } else if (view === 'reports') {
-      handleFilterChange('showReports', true);
-      handleFilterChange('showHotspots', false);
-    } else if (view === 'hotspots') {
-      handleFilterChange('showReports', false);
-      handleFilterChange('showHotspots', true);
+
+    if (view === "all") {
+      handleFilterChange("showReports", true);
+      handleFilterChange("showHotspots", true);
+    } else if (view === "reports") {
+      handleFilterChange("showReports", true);
+      handleFilterChange("showHotspots", false);
+    } else if (view === "hotspots") {
+      handleFilterChange("showReports", false);
+      handleFilterChange("showHotspots", true);
     }
   }
 
@@ -134,7 +136,10 @@ export default function ModernMapPage() {
     <ModernLayout>
       <Head>
         <title>Waste Map | TL Waste Monitoring Dashboard</title>
-        <meta name="description" content="Interactive waste map for Timor-Leste" />
+        <meta
+          name="description"
+          content="Interactive waste map for Timor-Leste"
+        />
       </Head>
 
       <div className="flex h-[calc(100vh-64px)]">
@@ -155,32 +160,32 @@ export default function ModernMapPage() {
           <div className="p-4 border-b border-gray-200">
             <h2 className="text-sm font-medium text-gray-700 mb-2">Map View</h2>
             <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
-              <button 
-                onClick={() => handleViewToggle('all')}
+              <button
+                onClick={() => handleViewToggle("all")}
                 className={`flex-1 py-1.5 px-2 text-sm font-medium rounded-md ${
-                  activeView === 'all' 
-                    ? 'bg-white text-emerald-700 shadow-sm' 
-                    : 'text-gray-700 hover:text-emerald-700'
+                  activeView === "all"
+                    ? "bg-white text-emerald-700 shadow-sm"
+                    : "text-gray-700 hover:text-emerald-700"
                 }`}
               >
                 All
               </button>
-              <button 
-                onClick={() => handleViewToggle('reports')}
+              <button
+                onClick={() => handleViewToggle("reports")}
                 className={`flex-1 py-1.5 px-2 text-sm font-medium rounded-md ${
-                  activeView === 'reports' 
-                    ? 'bg-white text-emerald-700 shadow-sm' 
-                    : 'text-gray-700 hover:text-emerald-700'
+                  activeView === "reports"
+                    ? "bg-white text-emerald-700 shadow-sm"
+                    : "text-gray-700 hover:text-emerald-700"
                 }`}
               >
                 Reports
               </button>
-              <button 
-                onClick={() => handleViewToggle('hotspots')}
+              <button
+                onClick={() => handleViewToggle("hotspots")}
                 className={`flex-1 py-1.5 px-2 text-sm font-medium rounded-md ${
-                  activeView === 'hotspots' 
-                    ? 'bg-white text-emerald-700 shadow-sm' 
-                    : 'text-gray-700 hover:text-emerald-700'
+                  activeView === "hotspots"
+                    ? "bg-white text-emerald-700 shadow-sm"
+                    : "text-gray-700 hover:text-emerald-700"
                 }`}
               >
                 Hotspots
@@ -195,7 +200,11 @@ export default function ModernMapPage() {
                 <Filter className="w-4 h-4 mr-2" />
                 Filters
               </div>
-              <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${
+                  showFilters ? "rotate-180" : ""
+                }`}
+              />
             </button>
 
             <button
@@ -203,25 +212,32 @@ export default function ModernMapPage() {
               disabled={refreshing || isLoading}
               className="flex w-full items-center justify-center gap-2 px-3 py-2 bg-emerald-600 border border-transparent rounded-lg text-white hover:bg-emerald-700 transition-colors"
             >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              {refreshing ? 'Refreshing...' : 'Refresh Map'}
+              <RefreshCw
+                className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
+              />
+              {refreshing ? "Refreshing..." : "Refresh Map"}
             </button>
           </div>
 
           {/* Filters Panel */}
           {showFilters && (
             <div className="p-4 border-b border-gray-200 overflow-y-auto">
-              <h2 className="text-sm font-medium text-gray-700 mb-3">Filter Map Data</h2>
-              
+              <h2 className="text-sm font-medium text-gray-700 mb-3">
+                Filter Map Data
+              </h2>
+
               {/* Status Filter */}
               <div className="mb-4">
-                <label htmlFor="status" className="block text-xs font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="status"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
                   Status
                 </label>
                 <select
                   id="status"
                   value={filters.status}
-                  onChange={(e) => handleFilterChange('status', e.target.value)}
+                  onChange={(e) => handleFilterChange("status", e.target.value)}
                   className="w-full border border-gray-300 rounded-lg py-1.5 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   <option value="">All Statuses</option>
@@ -232,36 +248,47 @@ export default function ModernMapPage() {
                   <option value="rejected">Rejected</option>
                 </select>
               </div>
-              
+
               {/* Waste Type Filter */}
               <div className="mb-4">
-                <label htmlFor="waste_type" className="block text-xs font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="waste_type"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
                   Waste Type
                 </label>
                 <select
                   id="waste_type"
                   value={filters.waste_type}
-                  onChange={(e) => handleFilterChange('waste_type', e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("waste_type", e.target.value)
+                  }
                   className="w-full border border-gray-300 rounded-lg py-1.5 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   <option value="">All Waste Types</option>
-                  {wasteTypes && wasteTypes.map(type => (
-                    <option key={type.waste_type_id} value={type.name}>
-                      {type.name}
-                    </option>
-                  ))}
+                  {wasteTypes &&
+                    wasteTypes.map((type) => (
+                      <option key={type.waste_type_id} value={type.name}>
+                        {type.name}
+                      </option>
+                    ))}
                 </select>
               </div>
-              
+
               {/* Priority Filter */}
               <div className="mb-4">
-                <label htmlFor="priority" className="block text-xs font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="priority"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
                   Priority
                 </label>
                 <select
                   id="priority"
                   value={filters.priority}
-                  onChange={(e) => handleFilterChange('priority', e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("priority", e.target.value)
+                  }
                   className="w-full border border-gray-300 rounded-lg py-1.5 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   <option value="">All Priorities</option>
@@ -273,13 +300,18 @@ export default function ModernMapPage() {
 
               {/* Severity Filter */}
               <div className="mb-4">
-                <label htmlFor="severity" className="block text-xs font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="severity"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
                   Severity
                 </label>
                 <select
                   id="severity"
                   value={filters.severity}
-                  onChange={(e) => handleFilterChange('severity', e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("severity", e.target.value)
+                  }
                   className="w-full border border-gray-300 rounded-lg py-1.5 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   <option value="">All Severities</option>
@@ -288,10 +320,13 @@ export default function ModernMapPage() {
                   <option value="low">Low (1-4)</option>
                 </select>
               </div>
-              
+
               {/* Time Range Filter */}
               <div className="mb-4">
-                <label htmlFor="days" className="block text-xs font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="days"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
                   Time Range
                 </label>
                 <div className="relative rounded-lg">
@@ -302,7 +337,9 @@ export default function ModernMapPage() {
                     id="days"
                     name="days"
                     value={filters.days}
-                    onChange={(e) => handleFilterChange('days', parseInt(e.target.value))}
+                    onChange={(e) =>
+                      handleFilterChange("days", parseInt(e.target.value))
+                    }
                     className="w-full border border-gray-300 rounded-lg py-1.5 pl-9 pr-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   >
                     <option value="7">Last 7 days</option>
@@ -333,7 +370,9 @@ export default function ModernMapPage() {
 
           {/* Map Stats */}
           <div className="p-4 mt-auto border-t border-gray-200">
-            <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Map Statistics</h2>
+            <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
+              Map Statistics
+            </h2>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -342,9 +381,11 @@ export default function ModernMapPage() {
                   </div>
                   <span className="text-sm text-gray-600">Reports</span>
                 </div>
-                <span className="text-sm font-semibold">{formatNumber(mapStats.totalReports)}</span>
+                <span className="text-sm font-semibold">
+                  {formatNumber(mapStats.totalReports)}
+                </span>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-600 mr-3">
@@ -352,9 +393,11 @@ export default function ModernMapPage() {
                   </div>
                   <span className="text-sm text-gray-600">Hotspots</span>
                 </div>
-                <span className="text-sm font-semibold">{formatNumber(mapStats.totalHotspots)}</span>
+                <span className="text-sm font-semibold">
+                  {formatNumber(mapStats.totalHotspots)}
+                </span>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 mr-3">
@@ -362,7 +405,9 @@ export default function ModernMapPage() {
                   </div>
                   <span className="text-sm text-gray-600">High Severity</span>
                 </div>
-                <span className="text-sm font-semibold">{formatNumber(mapStats.highSeverity)}</span>
+                <span className="text-sm font-semibold">
+                  {formatNumber(mapStats.highSeverity)}
+                </span>
               </div>
             </div>
           </div>
@@ -374,10 +419,12 @@ export default function ModernMapPage() {
           {refreshing && (
             <div className="absolute top-4 right-4 z-10 bg-white border border-gray-200 rounded-lg p-3 flex items-center shadow-md">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-500 mr-3"></div>
-              <span className="text-sm text-gray-700">Refreshing map data...</span>
+              <span className="text-sm text-gray-700">
+                Refreshing map data...
+              </span>
             </div>
           )}
-          
+
           {/* Error state */}
           {isError && (
             <div className="absolute top-4 right-4 z-10 bg-red-50 border border-red-200 rounded-lg p-3 flex items-center shadow-md max-w-md">
@@ -385,9 +432,11 @@ export default function ModernMapPage() {
                 <X className="h-5 w-5 text-red-500" />
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-700">Error loading map data. Please try again.</p>
-                <button 
-                  onClick={handleRefresh} 
+                <p className="text-sm text-red-700">
+                  Error loading map data. Please try again.
+                </p>
+                <button
+                  onClick={handleRefresh}
                   className="mt-1 text-xs font-medium text-red-700 hover:text-red-600 underline"
                 >
                   Retry
@@ -430,8 +479,12 @@ export default function ModernMapPage() {
           {isLoading ? (
             <div className="flex flex-col justify-center items-center h-full bg-gray-50">
               <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-emerald-500 mb-4"></div>
-              <p className="text-emerald-600 font-medium text-lg">Loading map data...</p>
-              <p className="text-gray-500 mt-2">Please wait while we fetch the latest reports</p>
+              <p className="text-emerald-600 font-medium text-lg">
+                Loading map data...
+              </p>
+              <p className="text-gray-500 mt-2">
+                Please wait while we fetch the latest reports
+              </p>
             </div>
           ) : (
             <DynamicMap data={mapData} />

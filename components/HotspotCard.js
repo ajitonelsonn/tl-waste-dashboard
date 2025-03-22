@@ -3,15 +3,19 @@ export default function HotspotCard({ hotspot, isSelected, onClick }) {
   // Helper function to safely format numeric values
   const formatNumber = (value, decimals = 1) => {
     // Convert to number if it's a string
-    const num = typeof value === 'string' ? parseFloat(value) : value;
+    const num = typeof value === "string" ? parseFloat(value) : value;
     // Check if it's a valid number
-    return !isNaN(num) ? num.toFixed(decimals) : 'N/A';
+    return !isNaN(num) ? num.toFixed(decimals) : "N/A";
   };
 
   return (
-    <div 
+    <div
       className={`border rounded-lg p-4 transition-colors duration-200 cursor-pointer
-        ${isSelected ? 'bg-red-100 border-red-400' : 'bg-white border-gray-200 hover:bg-red-50'}`}
+        ${
+          isSelected
+            ? "bg-red-100 border-red-400"
+            : "bg-white border-gray-200 hover:bg-red-50"
+        }`}
       onClick={onClick}
     >
       <div className="flex items-center">
@@ -29,7 +33,9 @@ export default function HotspotCard({ hotspot, isSelected, onClick }) {
       </div>
       <div className="mt-2 text-sm text-red-700">
         {hotspot.average_severity && (
-          <div>Average severity: {formatNumber(hotspot.average_severity)}/10</div>
+          <div>
+            Average severity: {formatNumber(hotspot.average_severity)}/10
+          </div>
         )}
         <div>Radius: {formatNumber(hotspot.radius_meters / 1000)}km</div>
       </div>

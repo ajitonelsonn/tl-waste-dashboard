@@ -1,18 +1,18 @@
 // components/ModernLayout.js
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { 
-  Home, 
-  Map, 
-  AlertTriangle, 
-  FileText, 
-  Menu, 
-  X, 
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import {
+  Home,
+  Map,
+  AlertTriangle,
+  FileText,
+  Menu,
+  X,
   ExternalLink,
   Sun,
-  User
-} from 'lucide-react';
+  User,
+} from "lucide-react";
 
 export default function ModernLayout({ children }) {
   const router = useRouter();
@@ -21,10 +21,18 @@ export default function ModernLayout({ children }) {
   const [isScrolled, setIsScrolled] = useState(false);
 
   const navItems = [
-    { name: 'Dashboard', href: '/', icon: <Home className="w-5 h-5" /> },
-    { name: 'Reports', href: '/reports', icon: <FileText className="w-5 h-5" /> },
-    { name: 'Map', href: '/map', icon: <Map className="w-5 h-5" /> },
-    { name: 'Hotspots', href: '/hotspots', icon: <AlertTriangle className="w-5 h-5" /> },
+    { name: "Dashboard", href: "/", icon: <Home className="w-5 h-5" /> },
+    {
+      name: "Reports",
+      href: "/reports",
+      icon: <FileText className="w-5 h-5" />,
+    },
+    { name: "Map", href: "/map", icon: <Map className="w-5 h-5" /> },
+    {
+      name: "Hotspots",
+      href: "/hotspots",
+      icon: <AlertTriangle className="w-5 h-5" />,
+    },
   ];
 
   function isActiveRoute(path) {
@@ -41,14 +49,14 @@ export default function ModernLayout({ children }) {
       setIsPageLoading(false);
     };
 
-    router.events.on('routeChangeStart', handleStart);
-    router.events.on('routeChangeComplete', handleComplete);
-    router.events.on('routeChangeError', handleComplete);
+    router.events.on("routeChangeStart", handleStart);
+    router.events.on("routeChangeComplete", handleComplete);
+    router.events.on("routeChangeError", handleComplete);
 
     return () => {
-      router.events.off('routeChangeStart', handleStart);
-      router.events.off('routeChangeComplete', handleComplete);
-      router.events.off('routeChangeError', handleComplete);
+      router.events.off("routeChangeStart", handleStart);
+      router.events.off("routeChangeComplete", handleComplete);
+      router.events.off("routeChangeError", handleComplete);
     };
   }, [router]);
 
@@ -62,19 +70,19 @@ export default function ModernLayout({ children }) {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dashboard-bg">
       {/* Top Navigation */}
-      <nav 
+      <nav
         className={`fixed top-0 left-0 right-0 z-10 transition-all duration-200 ${
-          isScrolled ? 'bg-white shadow-md' : 'bg-emerald-700'
+          isScrolled ? "bg-white shadow-md" : "bg-emerald-700"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -82,9 +90,11 @@ export default function ModernLayout({ children }) {
             <div className="flex items-center">
               <Link href="/" className="flex items-center space-x-3">
                 <span className="text-2xl">🌱</span>
-                <span className={`font-bold text-xl transition-colors duration-200 ${
-                  isScrolled ? 'text-emerald-700' : 'text-white'
-                }`}>
+                <span
+                  className={`font-bold text-xl transition-colors duration-200 ${
+                    isScrolled ? "text-emerald-700" : "text-white"
+                  }`}
+                >
                   TL Waste Monitor
                 </span>
               </Link>
@@ -98,23 +108,27 @@ export default function ModernLayout({ children }) {
                   href={item.href}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-1.5 ${
                     isActiveRoute(item.href)
-                      ? isScrolled 
-                        ? 'bg-emerald-50 text-emerald-700' 
-                        : 'bg-emerald-600 text-white'
+                      ? isScrolled
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-emerald-600 text-white"
                       : isScrolled
-                        ? 'text-gray-700 hover:bg-gray-100'
-                        : 'text-emerald-100 hover:bg-emerald-600'
+                      ? "text-gray-700 hover:bg-gray-100"
+                      : "text-emerald-100 hover:bg-emerald-600"
                   }`}
                 >
                   {item.icon}
                   <span>{item.name}</span>
                 </Link>
               ))}
-              
+
               <div className="ml-3 border-l border-emerald-600 pl-3 py-2">
-                <div className={`inline-flex rounded-lg ${
-                  isScrolled ? 'bg-gray-100 text-gray-700' : 'bg-emerald-600 text-emerald-100'
-                }`}>
+                <div
+                  className={`inline-flex rounded-lg ${
+                    isScrolled
+                      ? "bg-gray-100 text-gray-700"
+                      : "bg-emerald-600 text-emerald-100"
+                  }`}
+                >
                   <Link
                     href="/about"
                     className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium hover:underline"
@@ -137,8 +151,8 @@ export default function ModernLayout({ children }) {
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className={`inline-flex items-center justify-center p-2 rounded-lg focus:outline-none transition-colors ${
                   isScrolled
-                    ? 'text-gray-700 hover:bg-gray-100'
-                    : 'text-emerald-100 hover:bg-emerald-600 hover:text-white'
+                    ? "text-gray-700 hover:bg-gray-100"
+                    : "text-emerald-100 hover:bg-emerald-600 hover:text-white"
                 }`}
               >
                 <span className="sr-only">Open main menu</span>
@@ -162,8 +176,8 @@ export default function ModernLayout({ children }) {
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium ${
                     isActiveRoute(item.href)
-                      ? 'bg-emerald-50 text-emerald-700'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "text-gray-700 hover:bg-gray-50"
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -200,16 +214,18 @@ export default function ModernLayout({ children }) {
       {isPageLoading && (
         <div className="fixed inset-0 bg-white bg-opacity-75 z-50 flex flex-col justify-center items-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-emerald-100 border-t-emerald-500 mb-4"></div>
-          <p className="text-emerald-600 font-medium text-xl">Loading page...</p>
-          <p className="text-gray-500 mt-2">Please wait while we prepare the data</p>
+          <p className="text-emerald-600 font-medium text-xl">
+            Loading page...
+          </p>
+          <p className="text-gray-500 mt-2">
+            Please wait while we prepare the data
+          </p>
         </div>
       )}
 
       {/* Main Content */}
       <div className="pt-16">
-        <main>
-          {children}
-        </main>
+        <main>{children}</main>
       </div>
 
       {/* Footer */}
@@ -219,58 +235,80 @@ export default function ModernLayout({ children }) {
             <div className="flex flex-col items-center lg:items-start">
               <div className="flex items-center space-x-2 mb-4">
                 <span className="text-2xl">🌱</span>
-                <span className="font-bold text-xl text-emerald-700">TL Waste Monitor</span>
+                <span className="font-bold text-xl text-emerald-700">
+                  TL Waste Monitor
+                </span>
               </div>
               <div className="text-sm text-gray-500 text-center lg:text-left">
-                &copy; {new Date().getFullYear()} TL Digital Waste Monitoring Network<br />
+                &copy; {new Date().getFullYear()} TL Digital Waste Monitoring
+                Network
+                <br />
                 Developed for Global AI Agents League Hackathon
               </div>
             </div>
-            
+
             <div className="flex flex-col md:flex-row gap-8">
               <div>
                 <h3 className="text-gray-700 font-medium mb-3">Resources</h3>
                 <ul className="space-y-2 text-sm">
                   <li>
-                    <Link href="/about" className="text-gray-600 hover:text-emerald-600">
+                    <Link
+                      href="/about"
+                      className="text-gray-600 hover:text-emerald-600"
+                    >
                       About the Project
                     </Link>
                   </li>
                   <li>
-                    <Link href="/uc" className="text-gray-600 hover:text-emerald-600">
+                    <Link
+                      href="/uc"
+                      className="text-gray-600 hover:text-emerald-600"
+                    >
                       Privacy Policy
                     </Link>
                   </li>
                   <li>
-                    <Link href="/uc" className="text-gray-600 hover:text-emerald-600">
+                    <Link
+                      href="/uc"
+                      className="text-gray-600 hover:text-emerald-600"
+                    >
                       Terms of Service
                     </Link>
                   </li>
                 </ul>
               </div>
-              
+
               <div>
                 <h3 className="text-gray-700 font-medium mb-3">Connect</h3>
                 <ul className="space-y-2 text-sm">
                   <li>
-                    <Link href="/uc" className="text-gray-600 hover:text-emerald-600">
+                    <Link
+                      href="/uc"
+                      className="text-gray-600 hover:text-emerald-600"
+                    >
                       Contact Us
                     </Link>
                   </li>
                   <li>
-                    <Link href="/uc" className="text-gray-600 hover:text-emerald-600">
+                    <Link
+                      href="/uc"
+                      className="text-gray-600 hover:text-emerald-600"
+                    >
                       Submit Feedback
                     </Link>
                   </li>
                   <li>
-                    <Link href="/uc" className="text-gray-600 hover:text-emerald-600">
+                    <Link
+                      href="/uc"
+                      className="text-gray-600 hover:text-emerald-600"
+                    >
                       Report an Issue
                     </Link>
                   </li>
                 </ul>
               </div>
             </div>
-            
+
             <div className="flex flex-col items-center lg:items-end">
               <p className="text-sm text-gray-500">
                 Making Timor-Leste cleaner and healthier together

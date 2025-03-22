@@ -1,38 +1,44 @@
 // pages/api/map/reports.ts
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { MapData } from '@/types';
-import executeQuery from '@/lib/db';
-import { formatDateTime, formatDate, parseIntParam, getFilterConditions } from '@/lib/utils';
+import type { NextApiRequest, NextApiResponse } from "next";
+import { MapData } from "@/types";
+import executeQuery from "@/lib/db";
+import {
+  formatDateTime,
+  formatDate,
+  parseIntParam,
+  getFilterConditions,
+} from "@/lib/utils";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<MapData | { error: string }>
 ) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
     // Get filter parameters
     const { conditions, params } = getFilterConditions(req);
-    
+
     // Add condition that latitude and longitude are not null
     conditions.unshift("r.latitude IS NOT NULL AND r.longitude IS NOT NULL");
-    
+
     // Get days parameter and build date condition
-    const days = parseIntParam(req, 'days', 30);
+    const days = parseIntParam(req, "days", 30);
     if (days > 0) {
       const daysAgo = new Date();
       daysAgo.setDate(daysAgo.getDate() - days);
-      
+
       // Add date condition
       conditions.push("r.report_date >= ?");
       params.push(daysAgo);
     }
-    
+
     // Build where clause
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-    
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
     // Get reports
     const reportsQuery = `
       SELECT r.report_id, r.latitude, r.longitude, r.status, 
@@ -45,24 +51,24 @@ export default async function handler(
       ORDER BY r.report_date DESC
       LIMIT 1000
     `;
-    
+
     //console.log("Reports query:", reportsQuery);
     //console.log("Params:", params);
-    
+
     const reportsResult = await executeQuery<any[]>({
       query: reportsQuery,
       values: params,
     });
-    
+
     // Convert datetime objects to strings
-    const reports = reportsResult.map(report => {
+    const reports = reportsResult.map((report) => {
       const formattedReport = { ...report };
       if (report.report_date) {
         formattedReport.report_date = formatDateTime(report.report_date);
       }
       return formattedReport;
     });
-    
+
     // Get hotspots
     const hotspotsQuery = `
       SELECT h.hotspot_id, h.name, h.center_latitude, h.center_longitude,
@@ -71,13 +77,13 @@ export default async function handler(
       FROM hotspots h
       WHERE h.status = 'active'
     `;
-    
+
     const hotspotsResult = await executeQuery<any[]>({
       query: hotspotsQuery,
     });
-    
+
     // Convert datetime objects to strings
-    const hotspots = hotspotsResult.map(hotspot => {
+    const hotspots = hotspotsResult.map((hotspot) => {
       const formattedHotspot = { ...hotspot };
       if (hotspot.first_reported) {
         formattedHotspot.first_reported = formatDate(hotspot.first_reported);
@@ -87,13 +93,13 @@ export default async function handler(
       }
       return formattedHotspot;
     });
-    
+
     res.status(200).json({
       reports,
-      hotspots
+      hotspots,
     });
   } catch (error) {
-    console.error('Error getting map reports:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error getting map reports:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }

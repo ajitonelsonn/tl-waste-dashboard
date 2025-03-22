@@ -1,8 +1,12 @@
 // components/ModernPagination.js
-import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function ModernPagination({ currentPage, totalPages, onPageChange }) {
+export default function ModernPagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+}) {
   // Don't render pagination if there's only one page
   if (totalPages <= 1) {
     return null;
@@ -20,7 +24,7 @@ export default function ModernPagination({ currentPage, totalPages, onPageChange
   } else {
     // Put current page in the middle if possible
     const middlePosition = Math.floor(maxVisiblePages / 2);
-    
+
     if (currentPage <= middlePosition + 1) {
       // Current page is near the start
       startPage = 1;
@@ -35,7 +39,7 @@ export default function ModernPagination({ currentPage, totalPages, onPageChange
       endPage = currentPage + middlePosition;
     }
   }
-  
+
   for (let i = startPage; i <= endPage; i++) {
     range.push(i);
   }
@@ -50,15 +54,15 @@ export default function ModernPagination({ currentPage, totalPages, onPageChange
             disabled={currentPage === 1}
             className={`relative inline-flex items-center px-2 py-2 rounded-md text-sm font-medium ${
               currentPage === 1
-                ? 'text-gray-300 cursor-not-allowed'
-                : 'text-gray-700 hover:bg-gray-100 focus:z-10 focus:outline-none focus:ring-2 focus:ring-emerald-500'
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-700 hover:bg-gray-100 focus:z-10 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             }`}
             aria-label="Previous page"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
         </li>
-        
+
         {/* First page if not visible */}
         {startPage > 1 && (
           <>
@@ -79,23 +83,23 @@ export default function ModernPagination({ currentPage, totalPages, onPageChange
             )}
           </>
         )}
-        
+
         {/* Page numbers */}
-        {range.map(page => (
+        {range.map((page) => (
           <li key={page}>
             <button
               onClick={() => onPageChange(page)}
               className={`relative inline-flex items-center px-4 py-2 rounded-md text-sm font-medium ${
                 currentPage === page
-                  ? 'z-10 bg-emerald-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-100 focus:z-10 focus:outline-none focus:ring-2 focus:ring-emerald-500'
+                  ? "z-10 bg-emerald-600 text-white"
+                  : "text-gray-700 hover:bg-gray-100 focus:z-10 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               }`}
             >
               {page}
             </button>
           </li>
         ))}
-        
+
         {/* Last page if not visible */}
         {endPage < totalPages && (
           <>
@@ -116,7 +120,7 @@ export default function ModernPagination({ currentPage, totalPages, onPageChange
             </li>
           </>
         )}
-        
+
         {/* Next button */}
         <li>
           <button
@@ -124,8 +128,8 @@ export default function ModernPagination({ currentPage, totalPages, onPageChange
             disabled={currentPage === totalPages}
             className={`relative inline-flex items-center px-2 py-2 rounded-md text-sm font-medium ${
               currentPage === totalPages
-                ? 'text-gray-300 cursor-not-allowed'
-                : 'text-gray-700 hover:bg-gray-100 focus:z-10 focus:outline-none focus:ring-2 focus:ring-emerald-500'
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-700 hover:bg-gray-100 focus:z-10 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             }`}
             aria-label="Next page"
           >

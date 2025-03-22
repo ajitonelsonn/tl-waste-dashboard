@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['localhost'],
+    domains: ["localhost"],
   },
   // Disable ESLint during build for now to focus on TypeScript issues
   eslint: {
@@ -15,7 +15,7 @@ const nextConfig = {
   // This is important to handle CSS modules properly
   webpack: (config) => {
     return config;
-  }
-}
+  },
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

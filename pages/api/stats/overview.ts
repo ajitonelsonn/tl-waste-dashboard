@@ -1,15 +1,15 @@
 // pages/api/stats/overview.ts
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { StatsOverview, DailyReport } from '@/types';
-import executeQuery from '@/lib/db';
-import { formatDate } from '@/lib/utils';
+import type { NextApiRequest, NextApiResponse } from "next";
+import { StatsOverview, DailyReport } from "@/types";
+import executeQuery from "@/lib/db";
+import { formatDate } from "@/lib/utils";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<StatsOverview | { error: string }>
 ) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
@@ -20,16 +20,20 @@ export default async function handler(
     const total_reports = totalReportsResult[0].total_reports;
 
     // Get reports by status
-    const statusCountsResult = await executeQuery<{ status: string, count: number }[]>({
+    const statusCountsResult = await executeQuery<
+      { status: string; count: number }[]
+    >({
       query: "SELECT status, COUNT(*) as count FROM reports GROUP BY status",
     });
     const status_counts: Record<string, number> = {};
-    statusCountsResult.forEach(row => {
+    statusCountsResult.forEach((row) => {
       status_counts[row.status] = row.count;
     });
 
     // Get reports by waste type
-    const wasteTypeCountsResult = await executeQuery<{ name: string, count: number }[]>({
+    const wasteTypeCountsResult = await executeQuery<
+      { name: string; count: number }[]
+    >({
       query: `
         SELECT w.name, COUNT(*) as count 
         FROM analysis_results a
@@ -38,7 +42,7 @@ export default async function handler(
       `,
     });
     const waste_type_counts: Record<string, number> = {};
-    wasteTypeCountsResult.forEach(row => {
+    wasteTypeCountsResult.forEach((row) => {
       waste_type_counts[row.name] = row.count;
     });
 
@@ -49,17 +53,21 @@ export default async function handler(
     const avg_severity = avgSeverityResult[0].avg_severity || 0;
 
     // Get priority level breakdown
-    const priorityCountsResult = await executeQuery<{ priority_level: string, count: number }[]>({
-      query: "SELECT priority_level, COUNT(*) as count FROM analysis_results GROUP BY priority_level",
+    const priorityCountsResult = await executeQuery<
+      { priority_level: string; count: number }[]
+    >({
+      query:
+        "SELECT priority_level, COUNT(*) as count FROM analysis_results GROUP BY priority_level",
     });
     const priority_counts: Record<string, number> = {};
-    priorityCountsResult.forEach(row => {
+    priorityCountsResult.forEach((row) => {
       priority_counts[row.priority_level] = row.count;
     });
 
     // Get hotspot count
     const hotspotCountResult = await executeQuery<{ hotspot_count: number }[]>({
-      query: "SELECT COUNT(*) as hotspot_count FROM hotspots WHERE status = 'active'",
+      query:
+        "SELECT COUNT(*) as hotspot_count FROM hotspots WHERE status = 'active'",
     });
     const hotspot_count = hotspotCountResult[0].hotspot_count;
 
@@ -70,7 +78,9 @@ export default async function handler(
 
     const formattedThirtyDaysAgo = formatDate(thirtyDaysAgo);
 
-    const dailyReportsResult = await executeQuery<{ date: Date, count: number }[]>({
+    const dailyReportsResult = await executeQuery<
+      { date: Date; count: number }[]
+    >({
       query: `
         SELECT DATE(report_date) as date, COUNT(*) as count 
         FROM reports 
@@ -83,10 +93,10 @@ export default async function handler(
 
     // Format daily reports and fill in missing dates
     const daily_reports: DailyReport[] = [];
-    
+
     // Create a map of date -> count
     const dailyReportsMap: Record<string, number> = {};
-    dailyReportsResult.forEach(row => {
+    dailyReportsResult.forEach((row) => {
       const dateStr = formatDate(row.date);
       dailyReportsMap[dateStr] = row.count;
     });
@@ -97,7 +107,7 @@ export default async function handler(
       const dateStr = formatDate(current);
       daily_reports.push({
         date: dateStr,
-        count: dailyReportsMap[dateStr] || 0
+        count: dailyReportsMap[dateStr] || 0,
       });
       current.setDate(current.getDate() + 1);
     }
@@ -109,10 +119,10 @@ export default async function handler(
       avg_severity: parseFloat(avg_severity.toFixed(2)),
       priority_counts,
       hotspot_count,
-      daily_reports
+      daily_reports,
     });
   } catch (error) {
-    console.error('Error getting stats overview:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error getting stats overview:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }

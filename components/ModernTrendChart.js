@@ -1,9 +1,28 @@
 // components/ModernTrendChart.js
-import React from 'react';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
-import { Line } from 'react-chartjs-2';
+import React from "react";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from "chart.js";
+import { Line } from "react-chartjs-2";
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 export default function ModernTrendChart({ data }) {
   if (!data || data.length === 0) {
@@ -15,19 +34,22 @@ export default function ModernTrendChart({ data }) {
   }
 
   // Format dates and ensure they're valid
-  const formattedData = data.map(item => {
+  const formattedData = data.map((item) => {
     // Handle different data structures
-    if (typeof item === 'object') {
+    if (typeof item === "object") {
       let dateValue;
       let count;
-      
+
       // Handle data from statsData.daily_reports
-      if (item.date && (typeof item.count === 'number' || typeof item.count === 'string')) {
+      if (
+        item.date &&
+        (typeof item.count === "number" || typeof item.count === "string")
+      ) {
         dateValue = item.date;
         count = item.count;
-      } 
+      }
       // Handle data from trendData.report_trends
-      else if (item.period && typeof item.report_count === 'number') {
+      else if (item.period && typeof item.report_count === "number") {
         dateValue = item.period;
         count = item.report_count;
       }
@@ -37,26 +59,29 @@ export default function ModernTrendChart({ data }) {
         dateValue = keys[0];
         count = item[keys[0]];
       }
-      
+
       // Try to create a proper date object
       let formattedDate;
       try {
         const dateObj = new Date(dateValue);
         if (!isNaN(dateObj.getTime())) {
-          formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          formattedDate = dateObj.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
         } else {
           formattedDate = dateValue.toString();
         }
       } catch (error) {
         formattedDate = dateValue.toString();
       }
-      
+
       return {
         date: formattedDate,
-        count: parseInt(count, 10) || 0
+        count: parseInt(count, 10) || 0,
       };
     }
-    return { date: 'Unknown', count: 0 };
+    return { date: "Unknown", count: 0 };
   });
 
   // Sort data by date if possible
@@ -64,28 +89,28 @@ export default function ModernTrendChart({ data }) {
     // Try to convert to dates for comparison
     const dateA = new Date(a.date);
     const dateB = new Date(b.date);
-    
+
     // If both are valid dates, compare them
     if (!isNaN(dateA) && !isNaN(dateB)) {
       return dateA - dateB;
     }
-    
+
     // Otherwise use string comparison
     return a.date.localeCompare(b.date);
   });
 
   const chartData = {
-    labels: sortedData.map(item => item.date),
+    labels: sortedData.map((item) => item.date),
     datasets: [
       {
-        label: 'Reports',
-        data: sortedData.map(item => item.count),
-        borderColor: '#10B981', // Emerald 500
-        backgroundColor: 'rgba(16, 185, 129, 0.1)', // Emerald 500 with transparency
+        label: "Reports",
+        data: sortedData.map((item) => item.count),
+        borderColor: "#10B981", // Emerald 500
+        backgroundColor: "rgba(16, 185, 129, 0.1)", // Emerald 500 with transparency
         tension: 0.4,
         fill: true,
-        pointBackgroundColor: '#10B981',
-        pointBorderColor: '#FFFFFF',
+        pointBackgroundColor: "#10B981",
+        pointBorderColor: "#FFFFFF",
         pointRadius: 4,
         pointHoverRadius: 6,
         borderWidth: 3,
@@ -101,63 +126,63 @@ export default function ModernTrendChart({ data }) {
         beginAtZero: true,
         ticks: {
           precision: 0,
-          color: '#6B7280', // Gray 500
+          color: "#6B7280", // Gray 500
           font: {
             family: "'Inter', 'system-ui', sans-serif",
-            size: 11
-          }
+            size: 11,
+          },
         },
         grid: {
-          color: 'rgba(243, 244, 246, 1)', // Gray 100
-          drawBorder: false
-        }
+          color: "rgba(243, 244, 246, 1)", // Gray 100
+          drawBorder: false,
+        },
       },
       x: {
         ticks: {
-          color: '#6B7280', // Gray 500
+          color: "#6B7280", // Gray 500
           font: {
             family: "'Inter', 'system-ui', sans-serif",
-            size: 11
+            size: 11,
           },
           maxRotation: 45,
-          minRotation: 45
+          minRotation: 45,
         },
         grid: {
           display: false,
-          drawBorder: false
-        }
-      }
+          drawBorder: false,
+        },
+      },
     },
     plugins: {
       legend: {
         display: false,
       },
       tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#111827', // Gray 900
-        bodyColor: '#4B5563', // Gray 600
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        titleColor: "#111827", // Gray 900
+        bodyColor: "#4B5563", // Gray 600
         bodyFont: {
           family: "'Inter', 'system-ui', sans-serif",
-          size: 12
+          size: 12,
         },
         titleFont: {
           family: "'Inter', 'system-ui', sans-serif",
           size: 13,
-          weight: 'bold'
+          weight: "bold",
         },
         padding: 12,
-        borderColor: 'rgba(229, 231, 235, 1)', // Gray 200
+        borderColor: "rgba(229, 231, 235, 1)", // Gray 200
         borderWidth: 1,
         displayColors: false,
         callbacks: {
-          title: function(context) {
+          title: function (context) {
             return context[0].label;
           },
-          label: function(context) {
+          label: function (context) {
             return `Reports: ${context.raw}`;
-          }
-        }
-      }
+          },
+        },
+      },
     },
   };
 
