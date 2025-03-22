@@ -12,6 +12,8 @@ import {
   ExternalLink,
   Sun,
   User,
+  Trophy,
+  Download,
 } from "lucide-react";
 
 export default function ModernLayout({ children }) {
@@ -32,6 +34,17 @@ export default function ModernLayout({ children }) {
       name: "Hotspots",
       href: "/hotspots",
       icon: <AlertTriangle className="w-5 h-5" />,
+    },
+    {
+      name: "Leaderboard",
+      href: "/leaderboard",
+      icon: <Trophy className="w-5 h-5" />,
+    },
+    {
+      name: "Download App",
+      href: "/download",
+      icon: <Download className="w-5 h-5" />,
+      highlight: true,
     },
   ];
 
@@ -120,7 +133,11 @@ export default function ModernLayout({ children }) {
                   key={item.name}
                   href={item.href}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-1.5 ${
-                    isActiveRoute(item.href)
+                    item.highlight
+                      ? isScrolled
+                        ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                        : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                      : isActiveRoute(item.href)
                       ? isScrolled
                         ? "bg-emerald-50 text-emerald-700"
                         : "bg-emerald-600 text-white"
@@ -195,7 +212,9 @@ export default function ModernLayout({ children }) {
                     key={item.name}
                     href={item.href}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium ${
-                      isActiveRoute(item.href)
+                      item.highlight
+                        ? "bg-emerald-600 text-white"
+                        : isActiveRoute(item.href)
                         ? "bg-emerald-50 text-emerald-700"
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
@@ -324,6 +343,28 @@ export default function ModernLayout({ children }) {
                       className="text-gray-600 hover:text-emerald-600"
                     >
                       Report an Issue
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-gray-700 font-medium mb-3">Community</h3>
+                <ul className="space-y-2 text-sm">
+                  <li>
+                    <Link
+                      href="/leaderboard"
+                      className="text-gray-600 hover:text-emerald-600"
+                    >
+                      Leaderboard
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/download"
+                      className="text-gray-600 hover:text-emerald-600"
+                    >
+                      Download App
                     </Link>
                   </li>
                 </ul>

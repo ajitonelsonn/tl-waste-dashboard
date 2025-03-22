@@ -101,7 +101,7 @@ export default function ReportDetail() {
             className="text-emerald-600 hover:text-emerald-800 flex items-center mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Reports
+            Back
           </button>
           <h1 className="text-2xl font-bold text-gray-900">
             {loading
@@ -175,12 +175,23 @@ export default function ReportDetail() {
                     Report Details
                   </h3>
 
-                  {report.description ? (
+                  {report.description || report.full_description ? (
                     <div className="bg-gray-50 rounded-lg p-4 mb-4">
                       <h4 className="text-sm font-medium text-gray-700 mb-2">
                         Description
                       </h4>
                       <p className="text-gray-600">{report.description}</p>
+
+                      {report.full_description && (
+                        <div className="mt-4">
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">
+                            Full Analysis Description
+                          </h4>
+                          <p className="text-gray-600">
+                            {report.full_description}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="text-gray-500 italic">

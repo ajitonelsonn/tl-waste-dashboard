@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useReports, useWasteTypes } from "../lib/api";
 import {
   RefreshCw,
@@ -14,11 +15,20 @@ import {
   MapPin,
   Info,
   ArrowUpRight,
+  Eye,
+  BarChart2,
+  Clock,
+  Tag,
+  AlertTriangle,
+  CheckCircle,
+  Clipboard,
+  Loader,
 } from "lucide-react";
 import ModernLayout from "../components/ModernLayout";
 import ModernPagination from "../components/ModernPagination";
 
 export default function PublicReportsPage() {
+  const router = useRouter();
   // State for filters, pagination, and UI states
   const [filters, setFilters] = useState({
     status: "",
@@ -46,10 +56,83 @@ export default function PublicReportsPage() {
     refresh: refreshReports,
   } = useReports(page, perPage, filters);
 
+  // Handle URL query parameters
+  useEffect(() => {
+    // Set initial filter values from URL query parameters if they exist
+    const { query } = router;
+    const initialFilters = { ...filters };
+    let hasInitialFilters = false;
+
+    if (query.status) {
+      initialFilters.status = query.status;
+      hasInitialFilters = true;
+    }
+    if (query.waste_type) {
+      initialFilters.waste_type = query.waste_type;
+      hasInitialFilters = true;
+    }
+    if (query.severity) {
+      initialFilters.severity = query.severity;
+      hasInitialFilters = true;
+    }
+    if (query.search) {
+      initialFilters.searchTerm = query.search;
+      hasInitialFilters = true;
+    }
+    if (query.from_date) {
+      initialFilters.fromDate = query.from_date;
+      hasInitialFilters = true;
+    }
+    if (query.to_date) {
+      initialFilters.toDate = query.to_date;
+      hasInitialFilters = true;
+    }
+    if (query.page && !isNaN(parseInt(query.page))) {
+      setPage(parseInt(query.page));
+    }
+    if (query.per_page && !isNaN(parseInt(query.per_page))) {
+      setPerPage(parseInt(query.per_page));
+    }
+
+    if (hasInitialFilters) {
+      setFilters(initialFilters);
+      setShowFilters(true);
+    }
+  }, [router.isReady]);
+
   // Reset to first page when filters change
   useEffect(() => {
     setPage(1);
   }, [filters]);
+
+  // Update URL when filters or pagination changes
+  useEffect(() => {
+    const queryParams = new URLSearchParams();
+
+    // Only add non-empty filters to the URL
+    if (filters.status) queryParams.set("status", filters.status);
+    if (filters.waste_type) queryParams.set("waste_type", filters.waste_type);
+    if (filters.severity) queryParams.set("severity", filters.severity);
+    if (filters.searchTerm) queryParams.set("search", filters.searchTerm);
+    if (filters.fromDate) queryParams.set("from_date", filters.fromDate);
+    if (filters.toDate) queryParams.set("to_date", filters.toDate);
+
+    // Always include pagination parameters
+    queryParams.set("page", page.toString());
+    queryParams.set("per_page", perPage.toString());
+
+    // Only update the URL when necessary and if router is ready
+    if (router.isReady) {
+      router.push(
+        {
+          pathname: router.pathname,
+          query: queryParams.toString() ? queryParams : undefined,
+        },
+        undefined,
+        { shallow: true }
+      );
+    }
+  }, [filters, page, perPage, router.isReady]);
 
   // Handle filter changes
   function handleFilterChange(field, value) {
@@ -105,6 +188,11 @@ export default function PublicReportsPage() {
     }));
   }
 
+  // Navigate to report detail page
+  const navigateToReportDetail = (reportId) => {
+    router.push(`/reports/${reportId}`);
+  };
+
   // Format date for display
   function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -146,33 +234,38 @@ export default function PublicReportsPage() {
 
   // Generate status badge
   const getStatusBadge = (status) => {
-    let bgColor, textColor, statusText;
+    let bgColor, textColor, statusText, icon;
 
     switch (status) {
       case "resolved":
         bgColor = "bg-green-100";
         textColor = "text-green-800";
         statusText = "Resolved";
+        icon = <CheckCircle className="w-3 h-3 mr-1" />;
         break;
       case "analyzed":
         bgColor = "bg-blue-100";
         textColor = "text-blue-800";
         statusText = "Analyzed";
+        icon = <Clipboard className="w-3 h-3 mr-1" />;
         break;
       case "analyzing":
         bgColor = "bg-purple-100";
         textColor = "text-purple-800";
         statusText = "Analyzing";
+        icon = <Loader className="w-3 h-3 mr-1" />;
         break;
       case "rejected":
         bgColor = "bg-red-100";
         textColor = "text-red-800";
         statusText = "Rejected";
+        icon = <X className="w-3 h-3 mr-1" />;
         break;
       default:
         bgColor = "bg-gray-100";
         textColor = "text-gray-800";
         statusText = "Pending";
+        icon = <Clock className="w-3 h-3 mr-1" />;
     }
 
     return (
@@ -183,6 +276,33 @@ export default function PublicReportsPage() {
       </span>
     );
   };
+
+  // Custom Loading Row component to make the loading animation more interactive
+  const LoadingRow = () => (
+    <tr className="animate-pulse">
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="h-4 bg-gray-200 rounded w-16"></div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="h-4 bg-gray-200 rounded w-24"></div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="h-5 bg-gray-200 rounded-full w-20"></div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="h-4 bg-gray-200 rounded w-32"></div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="h-5 bg-gray-200 rounded-full w-16"></div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="h-4 bg-gray-200 rounded w-48"></div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-right">
+        <div className="h-4 bg-gray-200 rounded w-20 ml-auto"></div>
+      </td>
+    </tr>
+  );
 
   return (
     <ModernLayout>
@@ -243,7 +363,7 @@ export default function PublicReportsPage() {
               type="text"
               value={filters.searchTerm}
               onChange={(e) => handleFilterChange("searchTerm", e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               placeholder="Search reports by ID, location, or type..."
             />
             {filters.searchTerm && (
@@ -432,11 +552,14 @@ export default function PublicReportsPage() {
           </div>
         )}
 
-        {/* Reports count */}
+        {/* Reports count and Pagination controls */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-          <div className="text-sm text-gray-600 mb-3 sm:mb-0">
-            Showing <span className="font-medium">{reports.length}</span> of{" "}
-            <span className="font-medium">{total}</span> total reports
+          <div className="text-sm text-gray-600 mb-3 sm:mb-0 flex items-center">
+            <FileText className="w-4 h-4 mr-1 text-gray-500" />
+            <span>
+              Showing <span className="font-medium">{reports.length}</span> of{" "}
+              <span className="font-medium">{total}</span> total reports
+            </span>
             {Object.values(filters).some((f) => f) && (
               <button
                 onClick={clearFilters}
@@ -464,8 +587,39 @@ export default function PublicReportsPage() {
         {/* Reports table */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
           {reportsLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Waste Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Severity
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Location
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {[...Array(perPage)].map((_, i) => (
+                    <LoadingRow key={i} />
+                  ))}
+                </tbody>
+              </table>
             </div>
           ) : reports.length > 0 ? (
             <div className="overflow-x-auto">
@@ -591,7 +745,8 @@ export default function PublicReportsPage() {
                             <path
                               fillRule="evenodd"
                               d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 4.414 6.707 7.707a1 1 0 01-1.414 0z"
-                              clipRule="evenodd"
+                              clipRule="even
+                              odd"
                             />
                           </svg>
                         )}
@@ -601,7 +756,7 @@ export default function PublicReportsPage() {
                       Location
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Details
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -609,7 +764,8 @@ export default function PublicReportsPage() {
                   {reports.map((report) => (
                     <tr
                       key={report.report_id}
-                      className="hover:bg-gray-50 transition-colors"
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => navigateToReportDetail(report.report_id)}
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-emerald-600">
                         #{report.report_id}
@@ -629,8 +785,8 @@ export default function PublicReportsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 max-w-xs truncate">
                         {report.latitude && !isNaN(report.latitude) ? (
                           <div className="flex items-center">
-                            <MapPin className="w-4 h-4 text-gray-400 mr-1" />
-                            <span>
+                            <MapPin className="w-4 h-4 text-gray-400 mr-1 flex-shrink-0" />
+                            <span className="truncate">
                               {parseFloat(report.latitude).toFixed(4)},{" "}
                               {parseFloat(report.longitude).toFixed(4)}
                             </span>
@@ -640,13 +796,24 @@ export default function PublicReportsPage() {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                        <Link
-                          href={`/map?report=${report.report_id}`}
-                          className="text-emerald-600 hover:text-emerald-800 inline-flex items-center"
-                        >
-                          View on Map
-                          <ArrowUpRight className="ml-1 h-3 w-3" />
-                        </Link>
+                        <div className="flex justify-end space-x-2">
+                          <Link
+                            href={`/reports/${report.report_id}`}
+                            className="text-emerald-600 hover:text-emerald-800 inline-flex items-center"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            <span className="hidden sm:inline">View</span>
+                          </Link>
+                          <Link
+                            href={`/map?report=${report.report_id}`}
+                            className="text-blue-600 hover:text-blue-800 inline-flex items-center"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MapPin className="w-4 h-4 mr-1" />
+                            <span className="hidden sm:inline">Map</span>
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -691,7 +858,8 @@ export default function PublicReportsPage() {
         {reports.length > 0 && (
           <div className="mt-10 bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">
+              <h2 className="text-lg font-medium text-gray-900 flex items-center">
+                <BarChart2 className="w-5 h-5 text-emerald-600 mr-2" />
                 Reports Overview
               </h2>
               <p className="mt-1 text-sm text-gray-500">
@@ -700,7 +868,8 @@ export default function PublicReportsPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
               <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
-                <h3 className="text-sm font-medium text-emerald-800 mb-1">
+                <h3 className="text-sm font-medium text-emerald-800 mb-1 flex items-center">
+                  <Tag className="w-4 h-4 mr-1" />
                   Status Breakdown
                 </h3>
                 <div className="space-y-2 mt-3">
@@ -726,7 +895,8 @@ export default function PublicReportsPage() {
               </div>
 
               <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                <h3 className="text-sm font-medium text-blue-800 mb-1">
+                <h3 className="text-sm font-medium text-blue-800 mb-1 flex items-center">
+                  <AlertTriangle className="w-4 h-4 mr-1" />
                   Average Severity
                 </h3>
                 <div className="mt-3">
@@ -749,7 +919,8 @@ export default function PublicReportsPage() {
               </div>
 
               <div className="bg-amber-50 rounded-lg p-4 border border-amber-100">
-                <h3 className="text-sm font-medium text-amber-800 mb-1">
+                <h3 className="text-sm font-medium text-amber-800 mb-1 flex items-center">
+                  <Clock className="w-4 h-4 mr-1" />
                   Report Timeline
                 </h3>
                 <div className="mt-3">
@@ -798,7 +969,8 @@ export default function PublicReportsPage() {
 
         {/* Public Information Section */}
         <div className="mt-10 bg-white rounded-xl shadow-sm p-6 border-t-4 border-emerald-500">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+            <Info className="w-5 h-5 text-emerald-600 mr-2" />
             About Waste Reporting
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
