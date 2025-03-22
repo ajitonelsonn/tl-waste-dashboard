@@ -1,5 +1,5 @@
 // pages/index.js
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import Layout from "../components/ModernLayout";
@@ -25,6 +25,55 @@ import {
 import ModernTrendChart from "../components/ModernTrendChart";
 import ModernWasteTypeDistribution from "../components/ModernWasteTypeDistribution";
 
+// Loading components
+const LoadingAnimation = ({ text = "Loading data...", size = "md" }) => {
+  const sizeClasses = {
+    sm: "h-4 w-4",
+    md: "h-8 w-8",
+    lg: "h-12 w-12",
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center py-8">
+      <div
+        className={`animate-spin rounded-full ${sizeClasses[size]} border-b-2 border-emerald-500 mb-2`}
+      ></div>
+      <p className="text-emerald-600 font-medium">{text}</p>
+    </div>
+  );
+};
+
+const SkeletonCard = () => (
+  <div className="bg-white rounded-xl p-5 shadow-sm animate-pulse">
+    <div className="flex justify-between items-start">
+      <div className="p-2 rounded-lg bg-gray-100 h-10 w-10"></div>
+      <div className="h-6 bg-gray-100 rounded w-16"></div>
+    </div>
+    <div className="mt-4">
+      <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
+      <div className="h-4 bg-gray-100 rounded w-3/4"></div>
+    </div>
+  </div>
+);
+
+const SkeletonHotspot = () => (
+  <div className="border border-red-100 rounded-lg p-4 bg-red-50 animate-pulse">
+    <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center">
+        <div className="h-10 w-10 bg-red-200 rounded-full"></div>
+        <div className="ml-3">
+          <div className="h-5 bg-red-200 rounded w-32"></div>
+          <div className="h-4 bg-red-200 rounded w-24 mt-1"></div>
+        </div>
+      </div>
+    </div>
+    <div className="mt-2 flex justify-between">
+      <div className="h-4 bg-red-200 rounded w-20"></div>
+      <div className="h-4 bg-red-200 rounded w-16"></div>
+    </div>
+  </div>
+);
+
 // Dynamically import map component to prevent SSR issues
 const DynamicMap = dynamic(() => import("../components/ModernMap"), {
   ssr: false,
@@ -33,10 +82,15 @@ const DynamicMap = dynamic(() => import("../components/ModernMap"), {
 
 // Placeholder for map when loading
 const MapPlaceholder = () => (
-  <div className="bg-gray-100 rounded-xl h-full w-full flex items-center justify-center">
+  <div className="bg-gray-50 rounded-xl h-full w-full flex items-center justify-center">
     <div className="flex flex-col items-center">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mb-4"></div>
-      <p className="text-emerald-600 font-medium">Loading map...</p>
+      <p className="text-emerald-600 font-medium text-lg">
+        Loading map data...
+      </p>
+      <p className="text-gray-500 mt-2">
+        Please wait while we prepare the data
+      </p>
     </div>
   </div>
 );
@@ -45,6 +99,7 @@ export default function ModernDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedTrend, setSelectedTrend] = useState("daily");
   const [activeSummary, setActiveSummary] = useState("reports");
+  const [initialLoad, setInitialLoad] = useState(true);
 
   // Use custom hooks with caching
   const {
@@ -63,6 +118,23 @@ export default function ModernDashboard() {
     isLoading: trendLoading,
     refresh: refreshTrends,
   } = useTrends(selectedTrend, 30);
+
+  // Log loading states for debugging
+  useEffect(() => {
+    console.log("Loading states:", {
+      statsLoading,
+      mapLoading,
+      reportsLoading,
+      trendLoading,
+    });
+  }, [statsLoading, mapLoading, reportsLoading, trendLoading]);
+
+  // Mark as loaded after initial data fetch
+  useEffect(() => {
+    if (statsData && mapData && reportsData && trendData && initialLoad) {
+      setInitialLoad(false);
+    }
+  }, [statsData, mapData, reportsData, trendData, initialLoad]);
 
   // Combined loading state
   const isLoading =
@@ -129,6 +201,23 @@ export default function ModernDashboard() {
   const trendingData =
     trendData?.report_trends || statsData?.daily_reports || [];
 
+  // Show full-page loading state on initial load
+  if (initialLoad && isLoading) {
+    return (
+      <Layout>
+        <div className="fixed inset-0 bg-white bg-opacity-90 z-50 flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-emerald-500 border-t-transparent mb-6"></div>
+          <h2 className="text-2xl font-bold text-emerald-700 mb-2">
+            Loading Dashboard
+          </h2>
+          <p className="text-gray-600">
+            Please wait while we fetch the latest data...
+          </p>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <Head>
@@ -157,60 +246,74 @@ export default function ModernDashboard() {
             </div>
             <button
               onClick={refreshAllData}
-              disabled={refreshing}
+              disabled={refreshing || isLoading}
               className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium shadow-sm transition-colors"
             >
-              {refreshing ? (
+              {refreshing || isLoading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
               ) : (
                 <RefreshCw className="w-4 h-4" />
               )}
-              <span>Refresh</span>
+              <span>{refreshing ? "Refreshing..." : "Refresh"}</span>
             </button>
           </div>
         </div>
 
         {/* Refreshing indicator */}
-        {refreshing && (
+        {(refreshing || isLoading) && (
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-6 flex items-center shadow-sm">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-500 mr-3"></div>
             <span className="text-sm text-emerald-700">
-              Refreshing dashboard data...
+              {refreshing
+                ? "Refreshing dashboard data..."
+                : "Loading dashboard data..."}
             </span>
           </div>
         )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {summaryStats &&
-            Object.entries(summaryStats).map(([key, stat]) => (
-              <div
-                key={key}
-                className={`bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer
-                ${
-                  activeSummary === key ? `ring-2 ring-${stat.color}-400` : ""
-                }`}
-                onClick={() => setActiveSummary(key)}
-              >
-                <div className="flex justify-between items-start">
-                  <div className="p-2 rounded-lg bg-gray-50">{stat.icon}</div>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${stat.color}-100 text-${stat.color}-800`}
+          {statsLoading
+            ? // Skeleton loaders for stats
+              [...Array(4)].map((_, i) => <SkeletonCard key={i} />)
+            : // Actual stats cards
+              summaryStats &&
+              Object.entries(summaryStats).map(([key, stat]) => {
+                // Handle color classes separately to avoid Tailwind purge issues
+                const ringClass = `ring-${stat.color}-400`;
+                const bgClass = `bg-${stat.color}-100`;
+                const textClass = `text-${stat.color}-800`;
+
+                return (
+                  <div
+                    key={key}
+                    className={`bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
+                      activeSummary === key ? `ring-2 ${ringClass}` : ""
+                    }`}
+                    onClick={() => setActiveSummary(key)}
                   >
-                    {key === "reports" ? "Last 30 days" : ""}
-                    {key === "hotspots" ? "Active" : ""}
-                    {key === "severity" ? "Scale 1-10" : ""}
-                    {key === "types" ? "Categories" : ""}
-                  </span>
-                </div>
-                <div className="mt-4">
-                  <h3 className="text-3xl font-bold text-gray-900">
-                    {stat.count}
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">{stat.label}</p>
-                </div>
-              </div>
-            ))}
+                    <div className="flex justify-between items-start">
+                      <div className="p-2 rounded-lg bg-gray-50">
+                        {stat.icon}
+                      </div>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bgClass} ${textClass}`}
+                      >
+                        {key === "reports" ? "Last 30 days" : ""}
+                        {key === "hotspots" ? "Active" : ""}
+                        {key === "severity" ? "Scale 1-10" : ""}
+                        {key === "types" ? "Categories" : ""}
+                      </span>
+                    </div>
+                    <div className="mt-4">
+                      <h3 className="text-3xl font-bold text-gray-900">
+                        {stat.count}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1">{stat.label}</p>
+                    </div>
+                  </div>
+                );
+              })}
         </div>
 
         {/* Main Content Grid */}
@@ -232,7 +335,7 @@ export default function ModernDashboard() {
               </Link>
             </div>
             <div className="h-[400px]">
-              {isLoading && !mapData ? (
+              {mapLoading ? (
                 <MapPlaceholder />
               ) : (
                 <DynamicMap data={mapData} simplified={true} />
@@ -255,9 +358,27 @@ export default function ModernDashboard() {
               </Link>
             </div>
             <div className="overflow-hidden">
-              {isLoading && !recentReports.length ? (
-                <div className="flex justify-center items-center h-[400px]">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+              {reportsLoading ? (
+                <div className="animate-pulse">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="p-4 border-b border-gray-100">
+                      <div className="flex justify-between mb-2">
+                        <div className="h-5 bg-gray-200 rounded w-16"></div>
+                        <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      </div>
+                      <div className="mt-2 flex items-center justify-between">
+                        <div className="h-4 bg-gray-200 rounded w-32"></div>
+                        <div className="h-5 bg-gray-200 rounded-full w-16"></div>
+                      </div>
+                      <div className="mt-2">
+                        <div className="flex items-center gap-2">
+                          <div className="h-3 bg-gray-200 rounded w-12"></div>
+                          <div className="flex-1 bg-gray-200 rounded-full h-1.5"></div>
+                          <div className="h-3 bg-gray-200 rounded w-8"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : recentReports.length > 0 ? (
                 <div className="divide-y divide-gray-100">
@@ -379,13 +500,17 @@ export default function ModernDashboard() {
               </div>
             </div>
             <div className="p-4">
-              {isLoading && !trendingData.length ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+              {trendLoading ? (
+                <div className="h-64 flex items-center justify-center">
+                  <LoadingAnimation text="Generating trend chart..." />
                 </div>
-              ) : (
+              ) : trendingData && trendingData.length > 0 ? (
                 <div className="h-64">
                   <ModernTrendChart data={trendingData} />
+                </div>
+              ) : (
+                <div className="flex justify-center items-center h-64">
+                  <p className="text-gray-500">No trend data available</p>
                 </div>
               )}
             </div>
@@ -402,9 +527,9 @@ export default function ModernDashboard() {
               </div>
             </div>
             <div className="p-4">
-              {isLoading && !Object.keys(wasteTypeData).length ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+              {statsLoading ? (
+                <div className="h-64 flex items-center justify-center">
+                  <LoadingAnimation text="Generating distribution chart..." />
                 </div>
               ) : Object.keys(wasteTypeData).length > 0 ? (
                 <div className="h-64">
@@ -436,9 +561,11 @@ export default function ModernDashboard() {
             </Link>
           </div>
           <div className="p-4">
-            {isLoading && !hotspots.length ? (
-              <div className="flex justify-center items-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+            {mapLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(6)].map((_, i) => (
+                  <SkeletonHotspot key={i} />
+                ))}
               </div>
             ) : hotspots.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
