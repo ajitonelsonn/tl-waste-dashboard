@@ -28,8 +28,8 @@ const isValidCoordinate = (lat, lng) => {
   );
 };
 
-// Create marker icon based on status and severity
-const createMarkerIcon = (status, severity = 5) => {
+// Create marker icon based on status, severity, and focus state
+const createMarkerIcon = (status, severity = 5, isFocused = false) => {
   let color;
 
   // Determine color based on status and severity
@@ -43,11 +43,16 @@ const createMarkerIcon = (status, severity = 5) => {
     color = "#3B82F6"; // Blue
   }
 
+  // Create different HTML for focused vs regular markers
+  const html = isFocused
+    ? `<div style="background-color: ${color}; width: 18px; height: 18px; border: 3px solid #FFD700; border-radius: 50%; box-shadow: 0 0 8px rgba(0,0,0,0.5);"></div>`
+    : `<div style="background-color: ${color}; width: 12px; height: 12px; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 4px rgba(0,0,0,0.3);"></div>`;
+
   return L.divIcon({
-    html: `<div style="background-color: ${color}; width: 12px; height: 12px; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 4px rgba(0,0,0,0.3);"></div>`,
-    className: "custom-marker-icon",
-    iconSize: [12, 12],
-    iconAnchor: [6, 6],
+    html: html,
+    className: isFocused ? "custom-marker-icon focused" : "custom-marker-icon",
+    iconSize: isFocused ? [18, 18] : [12, 12],
+    iconAnchor: isFocused ? [9, 9] : [6, 6],
   });
 };
 
@@ -62,6 +67,7 @@ const ModernMap = ({
   simplified = false,
   selectedHotspot = null,
   onHotspotSelect,
+  focusedReportId = null, // New parameter for focused report
 }) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -147,6 +153,16 @@ const ModernMap = ({
                 <span style="background-color: #8B5CF6; width: 10px; height: 10px; border-radius: 50%; display: inline-block"></span>
                 <span>Analyzing</span>
               </div>
+              ${
+                focusedReportId
+                  ? `
+              <div class="flex items-center gap-2">
+                <span style="background-color: gold; width: 10px; height: 10px; border: 2px solid #fff; border-radius: 50%; display: inline-block; box-shadow: 0 0 4px rgba(0,0,0,0.3);"></span>
+                <span>Focused Report</span>
+              </div>
+              `
+                  : ""
+              }
             </div>
           `;
           return div;
@@ -162,7 +178,7 @@ const ModernMap = ({
         mapInstanceRef.current = null;
       }
     };
-  }, [simplified]);
+  }, [simplified, focusedReportId]);
 
   // Update markers when data changes
   useEffect(() => {
@@ -189,11 +205,15 @@ const ModernMap = ({
         parseNumeric(report.longitude),
       ];
 
+      const isFocused = report.report_id === focusedReportId;
+
       const marker = L.marker(position, {
         icon: createMarkerIcon(
           report.status,
-          parseNumeric(report.severity_score)
+          parseNumeric(report.severity_score),
+          isFocused
         ),
+        zIndexOffset: isFocused ? 1000 : 0, // Make focused marker appear on top
       }).addTo(mapInstanceRef.current);
 
       // Add modern styled popup with image if available
@@ -277,6 +297,25 @@ const ModernMap = ({
       }).setContent(popupContent);
 
       marker.bindPopup(popup);
+
+      // If this is the focused report, add a highlight and open the popup
+      if (isFocused) {
+        // Add a highlight circle around the marker
+        const highlightCircle = L.circle(position, {
+          radius: 50,
+          fillColor: "#FFD700",
+          fillOpacity: 0.3,
+          color: "#FFD700",
+          weight: 2,
+          className: "pulse-circle", // Add a CSS class for pulsing animation
+        }).addTo(mapInstanceRef.current);
+
+        markersRef.current.push(highlightCircle);
+
+        // Automatically open the popup for the focused report
+        marker.openPopup();
+      }
+
       markersRef.current.push(marker);
     });
 
@@ -371,8 +410,27 @@ const ModernMap = ({
       circlesRef.current.push(circle);
     });
 
-    // If a hotspot is selected, focus on it
+    // Handle map view positioning based on focused content
+
+    // If there's a focused report, center on it with higher zoom level
+    const focusedReport = focusedReportId
+      ? validReports.find((r) => r.report_id === focusedReportId)
+      : null;
+
     if (
+      focusedReport &&
+      isValidCoordinate(focusedReport.latitude, focusedReport.longitude)
+    ) {
+      mapInstanceRef.current.setView(
+        [
+          parseNumeric(focusedReport.latitude),
+          parseNumeric(focusedReport.longitude),
+        ],
+        15 // Higher zoom level for focused reports
+      );
+    }
+    // If a hotspot is selected, focus on it
+    else if (
       selectedHotspot &&
       isValidCoordinate(
         selectedHotspot.center_latitude,
@@ -407,7 +465,7 @@ const ModernMap = ({
         mapInstanceRef.current.setView(DEFAULT_CENTER, 11);
       }
     }
-  }, [data, selectedHotspot, onHotspotSelect]);
+  }, [data, selectedHotspot, onHotspotSelect, focusedReportId]);
 
   // UI controls for the map
   const mapControls = simplified ? null : (
@@ -450,6 +508,15 @@ const ModernMap = ({
               {data.hotspots ? data.hotspots.length : 0} Hotspots
             </span>
           </div>
+        </div>
+      )}
+
+      {/* Indicator for focused report */}
+      {focusedReportId && (
+        <div className="absolute top-4 left-4 z-[1000] bg-yellow-50 border border-yellow-200 rounded-lg py-1.5 px-3 shadow-md">
+          <span className="text-sm font-medium text-yellow-800">
+            Viewing Report #{focusedReportId}
+          </span>
         </div>
       )}
     </div>

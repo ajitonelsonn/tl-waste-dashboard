@@ -1,8 +1,9 @@
 // pages/map.js
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import dynamic from "next/dynamic";
-import { useMapData, useWasteTypes } from "../lib/api";
+import { useRouter } from "next/router";
+import { useMapData, useWasteTypes, fetchAPI } from "../lib/api";
 import {
   RefreshCw,
   Filter,
@@ -17,6 +18,7 @@ import {
   Info,
   Menu,
   ChevronLeft,
+  Crosshair,
 } from "lucide-react";
 import ModernLayout from "../components/ModernLayout";
 
@@ -32,6 +34,13 @@ const DynamicMap = dynamic(() => import("../components/ModernMap"), {
 });
 
 export default function ModernMapPage() {
+  const router = useRouter();
+  const { report: reportId } = router.query;
+
+  // State for single report focus
+  const [focusedReport, setFocusedReport] = useState(null);
+  const [isFetchingReport, setIsFetchingReport] = useState(false);
+
   // State for filters and UI
   const [filters, setFilters] = useState({
     status: "",
@@ -61,6 +70,22 @@ export default function ModernMapPage() {
     isError,
     refresh: refreshMap,
   } = useMapData(filters);
+
+  // Fetch specific report if ID is provided in URL
+  useEffect(() => {
+    if (reportId && !isLoading) {
+      setIsFetchingReport(true);
+      fetchAPI(`/reports/${reportId}`)
+        .then((data) => {
+          setFocusedReport(data);
+          setIsFetchingReport(false);
+        })
+        .catch((err) => {
+          console.error("Error fetching report:", err);
+          setIsFetchingReport(false);
+        });
+    }
+  }, [reportId, isLoading]);
 
   // Close mobile sidebar when clicking outside
   useEffect(() => {
@@ -131,6 +156,16 @@ export default function ModernMapPage() {
     setRefreshing(true);
     try {
       await refreshMap();
+
+      // Re-fetch focused report if needed
+      if (reportId) {
+        try {
+          const data = await fetchAPI(`/reports/${reportId}`);
+          setFocusedReport(data);
+        } catch (err) {
+          console.error("Error re-fetching report:", err);
+        }
+      }
     } catch (error) {
       console.error("Error refreshing map data:", error);
     } finally {
@@ -154,10 +189,49 @@ export default function ModernMapPage() {
     }
   }
 
+  // Clear focused report
+  function clearFocusedReport() {
+    setFocusedReport(null);
+    // Remove report param from URL without page refresh
+    router.push("/map", undefined, { shallow: true });
+  }
+
   // Helper function to format large numbers
   function formatNumber(num) {
     return new Intl.NumberFormat().format(num);
   }
+
+  // Prepare map data with focused report highlighted
+  const enhancedMapData = React.useMemo(() => {
+    if (!mapData) return null;
+
+    if (!focusedReport) return mapData;
+
+    // For highlighting the specific report, we need to ensure it's in the dataset
+    // First, check if the focused report is already in the reports list
+    const reportExists = mapData.reports.some(
+      (r) => r.report_id === parseInt(reportId)
+    );
+
+    if (reportExists) {
+      // Mark the focused report
+      return {
+        ...mapData,
+        reports: mapData.reports.map((report) => ({
+          ...report,
+          isFocused: report.report_id === parseInt(reportId),
+        })),
+      };
+    } else if (focusedReport) {
+      // Add the focused report to the map data
+      return {
+        ...mapData,
+        reports: [...mapData.reports, { ...focusedReport, isFocused: true }],
+      };
+    }
+
+    return mapData;
+  }, [mapData, focusedReport, reportId]);
 
   // Sidebar content component to reuse in both desktop and mobile views
   const SidebarContent = () => (
@@ -183,6 +257,30 @@ export default function ModernMapPage() {
           Visualize waste reports and hotspots
         </p>
       </div>
+
+      {/* Focused Report Notice */}
+      {focusedReport && (
+        <div className="p-4 bg-blue-50 border-b border-blue-100">
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="text-sm font-medium text-blue-800 mb-1">
+                Viewing Report #{reportId}
+              </h2>
+              <p className="text-xs text-blue-600">
+                {focusedReport.waste_type || "Unknown waste type"} -{" "}
+                {focusedReport.status}
+              </p>
+            </div>
+            <button
+              onClick={clearFocusedReport}
+              className="text-blue-600 hover:text-blue-800 p-1"
+              aria-label="Clear focused report"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Map Controls */}
       <div className="p-4 border-b border-gray-200">
@@ -439,7 +537,11 @@ export default function ModernMapPage() {
   return (
     <ModernLayout>
       <Head>
-        <title>Waste Map | TL Waste Monitoring Dashboard</title>
+        <title>
+          {focusedReport
+            ? `Report #${reportId} | Waste Map`
+            : `Waste Map | TL Waste Monitoring Dashboard`}
+        </title>
         <meta
           name="description"
           content="Interactive waste map for Timor-Leste"
@@ -457,6 +559,21 @@ export default function ModernMapPage() {
             <Menu className="w-5 h-5" />
             <span>Map Controls</span>
           </button>
+
+          {/* Show focused report info on mobile */}
+          {focusedReport && (
+            <div className="ml-3 flex-1 flex items-center">
+              <div className="bg-blue-50 text-blue-800 text-xs px-2 py-1 rounded-full">
+                Report #{reportId}
+              </div>
+              <button
+                onClick={clearFocusedReport}
+                className="ml-2 text-gray-500 p-1 rounded-full hover:bg-gray-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Mobile Sidebar Overlay */}
@@ -482,11 +599,11 @@ export default function ModernMapPage() {
         {/* Main Map Content */}
         <div className="flex-1 relative">
           {/* Refreshing indicator */}
-          {refreshing && (
+          {(refreshing || isFetchingReport) && (
             <div className="absolute top-4 right-4 z-10 bg-white border border-gray-200 rounded-lg p-3 flex items-center shadow-md">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-500 mr-3"></div>
               <span className="text-sm text-gray-700">
-                Refreshing map data...
+                {refreshing ? "Refreshing map data..." : "Loading report..."}
               </span>
             </div>
           )}
@@ -507,6 +624,30 @@ export default function ModernMapPage() {
                 >
                   Retry
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Focused Report Indicator - for desktop */}
+          {focusedReport && !isLoading && (
+            <div className="hidden md:block absolute top-4 left-4 z-10 bg-blue-50 border border-blue-200 rounded-lg p-3 shadow-md max-w-xs">
+              <div className="flex items-start">
+                <Crosshair className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" />
+                <div>
+                  <h3 className="text-sm font-medium text-blue-800">
+                    Report #{reportId}
+                  </h3>
+                  <p className="text-xs text-blue-600 mt-1">
+                    {focusedReport.waste_type || "Unknown waste type"} -{" "}
+                    {focusedReport.status}
+                  </p>
+                  <button
+                    onClick={clearFocusedReport}
+                    className="mt-2 text-xs text-blue-700 hover:text-blue-900 font-medium"
+                  >
+                    Clear Focus
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -558,6 +699,12 @@ export default function ModernMapPage() {
                 <span className="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
                 <span className="text-xs text-gray-600">High Severity</span>
               </div>
+              {focusedReport && (
+                <div className="flex items-center col-span-1 md:col-span-2">
+                  <span className="w-3 h-3 rounded-full bg-yellow-400 border-2 border-white shadow-md mr-2"></span>
+                  <span className="text-xs text-gray-600">Focused Report</span>
+                </div>
+              )}
               <div className="flex items-center col-span-1 md:col-span-2 mt-1">
                 <span className="w-3 h-3 rounded-full border border-dashed border-red-500 mr-2"></span>
                 <span className="text-xs text-gray-600">Hotspot Zone</span>
@@ -577,7 +724,10 @@ export default function ModernMapPage() {
               </p>
             </div>
           ) : (
-            <DynamicMap data={mapData} />
+            <DynamicMap
+              data={enhancedMapData}
+              focusedReportId={reportId ? parseInt(reportId) : null}
+            />
           )}
         </div>
       </div>

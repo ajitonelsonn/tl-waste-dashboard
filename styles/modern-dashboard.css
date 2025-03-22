@@ -291,3 +291,23 @@
   opacity: 1;
   visibility: visible;
 }
+
+/* Pulsing animation for focused marker */
+.pulse-circle {
+  animation: pulse-animation 2s infinite;
+}
+
+@keyframes pulse-animation {
+  0% {
+    opacity: 1;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(0.8);
+  }
+}
