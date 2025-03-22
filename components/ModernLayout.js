@@ -77,11 +77,24 @@ export default function ModernLayout({ children }) {
     };
   }, []);
 
+  // Prevent scrolling when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isMobileMenuOpen]);
+
   return (
-    <div className="min-h-screen bg-gray-50 dashboard-bg">
-      {/* Top Navigation */}
+    <div className="min-h-screen bg-gray-50 dashboard-bg relative">
+      {/* Top Navigation - Increased z-index to ensure it's on top */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-10 transition-all duration-200 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
           isScrolled ? "bg-white shadow-md" : "bg-emerald-700"
         }`}
       >
@@ -166,53 +179,61 @@ export default function ModernLayout({ children }) {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation - Improved for better mobile experience */}
         {isMobileMenuOpen && (
-          <div className="md:hidden bg-white shadow-lg border-t border-gray-100">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium ${
-                    isActiveRoute(item.href)
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {item.icon}
-                  {item.name}
-                </Link>
-              ))}
-              <div className="pt-4 pb-2 border-t border-gray-200">
-                <div className="flex flex-col gap-1">
+          <>
+            {/* Overlay to capture clicks outside menu */}
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 z-40"
+              onClick={() => setIsMobileMenuOpen(false)}
+            ></div>
+
+            <div className="md:hidden absolute top-16 left-0 right-0 bg-white shadow-lg border-t border-gray-100 z-50 max-h-[calc(100vh-4rem)] overflow-y-auto">
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                {navItems.map((item) => (
                   <Link
-                    href="/about"
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
+                    key={item.name}
+                    href={item.href}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium ${
+                      isActiveRoute(item.href)
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <ExternalLink className="w-5 h-5" />
-                    About
+                    {item.icon}
+                    {item.name}
                   </Link>
-                  <Link
-                    href="/help"
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Sun className="w-5 h-5" />
-                    Help
-                  </Link>
+                ))}
+                <div className="pt-4 pb-2 border-t border-gray-200">
+                  <div className="flex flex-col gap-1">
+                    <Link
+                      href="/about"
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <ExternalLink className="w-5 h-5" />
+                      About
+                    </Link>
+                    <Link
+                      href="/help"
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Sun className="w-5 h-5" />
+                      Help
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </>
         )}
       </nav>
 
-      {/* Page loading indicator */}
+      {/* Page loading indicator - Highest z-index to ensure it's on top of everything */}
       {isPageLoading && (
-        <div className="fixed inset-0 bg-white bg-opacity-75 z-50 flex flex-col justify-center items-center">
+        <div className="fixed inset-0 bg-white bg-opacity-75 z-[100] flex flex-col justify-center items-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-emerald-100 border-t-emerald-500 mb-4"></div>
           <p className="text-emerald-600 font-medium text-xl">
             Loading page...
@@ -223,13 +244,13 @@ export default function ModernLayout({ children }) {
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="pt-16">
+      {/* Main Content - Lower z-index than navigation */}
+      <div className="pt-16 relative z-0">
         <main>{children}</main>
       </div>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-10">
+      <footer className="bg-white border-t border-gray-200 mt-10 relative z-10">
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
             <div className="flex flex-col items-center lg:items-start">
