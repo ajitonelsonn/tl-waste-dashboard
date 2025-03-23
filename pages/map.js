@@ -1,5 +1,5 @@
 // pages/map.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
@@ -19,6 +19,7 @@ import {
   Menu,
   ChevronLeft,
   Crosshair,
+  Check,
 } from "lucide-react";
 import ModernLayout from "../components/ModernLayout";
 
@@ -54,13 +55,15 @@ export default function ModernMapPage() {
 
   const [showFilters, setShowFilters] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeView, setActiveView] = useState("all"); // 'all', 'reports', 'hotspots'
+  const [activeView, setActiveView] = useState("all");
   const [mapStats, setMapStats] = useState({
     totalReports: 0,
     totalHotspots: 0,
     highSeverity: 0,
   });
+  const [isMobile, setIsMobile] = useState(false);
 
   // Get data from API
   const { wasteTypes, isLoading: wasteTypesLoading } = useWasteTypes();
@@ -70,6 +73,25 @@ export default function ModernMapPage() {
     isError,
     refresh: refreshMap,
   } = useMapData(filters);
+
+  // Check if we're on mobile using window width on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const checkIfMobile = () => {
+      const isMobileView = window.innerWidth < 768;
+      if (isMobile !== isMobileView) {
+        setIsMobile(isMobileView);
+      }
+    };
+
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+
+    return () => {
+      window.removeEventListener("resize", checkIfMobile);
+    };
+  }, [isMobile]);
 
   // Fetch specific report if ID is provided in URL
   useEffect(() => {
@@ -107,6 +129,19 @@ export default function ModernMapPage() {
     };
   }, [showMobileSidebar]);
 
+  // Prevent body scrolling when mobile filters are open
+  useEffect(() => {
+    if (showMobileFilters) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [showMobileFilters]);
+
   // Update map stats when data changes
   useEffect(() => {
     if (mapData) {
@@ -121,25 +156,24 @@ export default function ModernMapPage() {
   }, [mapData]);
 
   // Handle filter changes
-  function handleFilterChange(field, value) {
+  const handleFilterChange = useCallback((field, value) => {
     setFilters((prev) => ({
       ...prev,
       [field]: value,
     }));
-  }
+  }, []);
 
   // Apply all filters at once
-  function applyFilters() {
-    // Already done through state
+  const applyFilters = useCallback(() => {
     setShowFilters(false);
-    // Close mobile sidebar on small screens
+    setShowMobileFilters(false);
     if (window.innerWidth < 768) {
       setShowMobileSidebar(false);
     }
-  }
+  }, []);
 
   // Clear all filters
-  function clearFilters() {
+  const clearFilters = useCallback(() => {
     setFilters({
       status: "",
       waste_type: "",
@@ -149,15 +183,14 @@ export default function ModernMapPage() {
       showReports: true,
       severity: "",
     });
-  }
+  }, []);
 
   // Function to refresh data
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
       await refreshMap();
 
-      // Re-fetch focused report if needed
       if (reportId) {
         try {
           const data = await fetchAPI(`/reports/${reportId}`);
@@ -171,50 +204,58 @@ export default function ModernMapPage() {
     } finally {
       setRefreshing(false);
     }
-  };
+  }, [refreshMap, reportId]);
 
   // Handle view toggle
-  function handleViewToggle(view) {
-    setActiveView(view);
+  const handleViewToggle = useCallback(
+    (view) => {
+      setActiveView(view);
 
-    if (view === "all") {
-      handleFilterChange("showReports", true);
-      handleFilterChange("showHotspots", true);
-    } else if (view === "reports") {
-      handleFilterChange("showReports", true);
-      handleFilterChange("showHotspots", false);
-    } else if (view === "hotspots") {
-      handleFilterChange("showReports", false);
-      handleFilterChange("showHotspots", true);
-    }
-  }
+      if (view === "all") {
+        handleFilterChange("showReports", true);
+        handleFilterChange("showHotspots", true);
+      } else if (view === "reports") {
+        handleFilterChange("showReports", true);
+        handleFilterChange("showHotspots", false);
+      } else if (view === "hotspots") {
+        handleFilterChange("showReports", false);
+        handleFilterChange("showHotspots", true);
+      }
+    },
+    [handleFilterChange]
+  );
 
   // Clear focused report
-  function clearFocusedReport() {
+  const clearFocusedReport = useCallback(() => {
     setFocusedReport(null);
-    // Remove report param from URL without page refresh
     router.push("/map", undefined, { shallow: true });
-  }
+  }, [router]);
 
   // Helper function to format large numbers
-  function formatNumber(num) {
+  const formatNumber = useCallback((num) => {
     return new Intl.NumberFormat().format(num);
-  }
+  }, []);
+
+  // Handle filter button click - different behavior on mobile vs desktop
+  const handleFilterButtonClick = useCallback(() => {
+    if (isMobile) {
+      setShowMobileFilters(true);
+    } else {
+      setShowFilters(!showFilters);
+    }
+  }, [isMobile, showFilters]);
 
   // Prepare map data with focused report highlighted
-  const enhancedMapData = React.useMemo(() => {
+  const enhancedMapData = useMemo(() => {
     if (!mapData) return null;
 
     if (!focusedReport) return mapData;
 
-    // For highlighting the specific report, we need to ensure it's in the dataset
-    // First, check if the focused report is already in the reports list
     const reportExists = mapData.reports.some(
       (r) => r.report_id === parseInt(reportId)
     );
 
     if (reportExists) {
-      // Mark the focused report
       return {
         ...mapData,
         reports: mapData.reports.map((report) => ({
@@ -223,7 +264,6 @@ export default function ModernMapPage() {
         })),
       };
     } else if (focusedReport) {
-      // Add the focused report to the map data
       return {
         ...mapData,
         reports: [...mapData.reports, { ...focusedReport, isFocused: true }],
@@ -235,9 +275,9 @@ export default function ModernMapPage() {
 
   // Sidebar content component to reuse in both desktop and mobile views
   const SidebarContent = () => (
-    <>
+    <div className="flex flex-col h-full">
       {/* Sidebar Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-900 flex items-center">
             <MapIcon className="w-5 h-5 mr-2 text-emerald-600" />
@@ -258,113 +298,332 @@ export default function ModernMapPage() {
         </p>
       </div>
 
-      {/* Focused Report Notice */}
-      {focusedReport && (
-        <div className="p-4 bg-blue-50 border-b border-blue-100">
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-sm font-medium text-blue-800 mb-1">
-                Viewing Report #{reportId}
-              </h2>
-              <p className="text-xs text-blue-600">
-                {focusedReport.waste_type || "Unknown waste type"} -{" "}
-                {focusedReport.status}
-              </p>
+      {/* Main scrollable content area */}
+      <div className="flex-grow overflow-y-auto">
+        {/* Focused Report Notice */}
+        {focusedReport && (
+          <div className="p-4 bg-blue-50 border-b border-blue-100">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-sm font-medium text-blue-800 mb-1">
+                  Viewing Report #{reportId}
+                </h2>
+                <p className="text-xs text-blue-600">
+                  {focusedReport.waste_type || "Unknown waste type"} -{" "}
+                  {focusedReport.status}
+                </p>
+              </div>
+              <button
+                onClick={clearFocusedReport}
+                className="text-blue-600 hover:text-blue-800 p-1"
+                aria-label="Clear focused report"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
+          </div>
+        )}
+
+        {/* Map Controls */}
+        <div className="p-4 border-t border-gray-200 flex-shrink-0">
+          <h2 className="text-sm font-medium text-gray-700 mb-2">Map View</h2>
+          <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
             <button
-              onClick={clearFocusedReport}
-              className="text-blue-600 hover:text-blue-800 p-1"
-              aria-label="Clear focused report"
+              onClick={() => handleViewToggle("all")}
+              className={`flex-1 py-1.5 px-2 text-sm font-medium rounded-md ${
+                activeView === "all"
+                  ? "bg-white text-emerald-700 shadow-sm"
+                  : "text-gray-700 hover:text-emerald-700"
+              }`}
             >
-              <X className="w-4 h-4" />
+              All
+            </button>
+            <button
+              onClick={() => handleViewToggle("reports")}
+              className={`flex-1 py-1.5 px-2 text-sm font-medium rounded-md ${
+                activeView === "reports"
+                  ? "bg-white text-emerald-700 shadow-sm"
+                  : "text-gray-700 hover:text-emerald-700"
+              }`}
+            >
+              Reports
+            </button>
+            <button
+              onClick={() => handleViewToggle("hotspots")}
+              className={`flex-1 py-1.5 px-2 text-sm font-medium rounded-md ${
+                activeView === "hotspots"
+                  ? "bg-white text-emerald-700 shadow-sm"
+                  : "text-gray-700 hover:text-emerald-700"
+              }`}
+            >
+              Hotspots
             </button>
           </div>
-        </div>
-      )}
 
-      {/* Map Controls */}
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="text-sm font-medium text-gray-700 mb-2">Map View</h2>
-        <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
           <button
-            onClick={() => handleViewToggle("all")}
-            className={`flex-1 py-1.5 px-2 text-sm font-medium rounded-md ${
-              activeView === "all"
-                ? "bg-white text-emerald-700 shadow-sm"
-                : "text-gray-700 hover:text-emerald-700"
-            }`}
+            onClick={handleFilterButtonClick}
+            className="flex w-full items-center justify-between px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors mb-4"
           >
-            All
+            <div className="flex items-center">
+              <Filter className="w-4 h-4 mr-2" />
+              Filters
+            </div>
+            <ChevronDown
+              className={`w-4 h-4 transition-transform ${
+                showFilters ? "rotate-180" : ""
+              }`}
+            />
           </button>
+
           <button
-            onClick={() => handleViewToggle("reports")}
-            className={`flex-1 py-1.5 px-2 text-sm font-medium rounded-md ${
-              activeView === "reports"
-                ? "bg-white text-emerald-700 shadow-sm"
-                : "text-gray-700 hover:text-emerald-700"
-            }`}
+            onClick={handleRefresh}
+            disabled={refreshing || isLoading}
+            className="flex w-full items-center justify-center gap-2 px-3 py-2 bg-emerald-600 border border-transparent rounded-lg text-white hover:bg-emerald-700 transition-colors"
           >
-            Reports
-          </button>
-          <button
-            onClick={() => handleViewToggle("hotspots")}
-            className={`flex-1 py-1.5 px-2 text-sm font-medium rounded-md ${
-              activeView === "hotspots"
-                ? "bg-white text-emerald-700 shadow-sm"
-                : "text-gray-700 hover:text-emerald-700"
-            }`}
-          >
-            Hotspots
+            <RefreshCw
+              className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
+            />
+            {refreshing ? "Refreshing..." : "Refresh Map"}
           </button>
         </div>
 
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="flex w-full items-center justify-between px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors mb-4"
-        >
-          <div className="flex items-center">
-            <Filter className="w-4 h-4 mr-2" />
-            Filters
+        {/* Desktop Filters Panel - only shown in desktop mode and when showFilters is true */}
+        {(isMobile || (!isMobile && showFilters)) && (
+          <div className="p-4 border-b border-gray-200 overflow-y-auto">
+            <h2 className="text-sm font-medium text-gray-700 mb-3">
+              Filter Map Data
+            </h2>
+
+            {/* Status Filter */}
+            <div className="mb-4">
+              <label
+                htmlFor="status"
+                className="block text-xs font-medium text-gray-700 mb-1"
+              >
+                Status
+              </label>
+              <select
+                id="status"
+                value={filters.status}
+                onChange={(e) => handleFilterChange("status", e.target.value)}
+                className="w-full border border-gray-300 rounded-lg py-1.5 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="analyzing">Analyzing</option>
+                <option value="analyzed">Analyzed</option>
+                <option value="resolved">Resolved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+
+            {/* Waste Type Filter */}
+            <div className="mb-4">
+              <label
+                htmlFor="waste_type"
+                className="block text-xs font-medium text-gray-700 mb-1"
+              >
+                Waste Type
+              </label>
+              <select
+                id="waste_type"
+                value={filters.waste_type}
+                onChange={(e) =>
+                  handleFilterChange("waste_type", e.target.value)
+                }
+                className="w-full border border-gray-300 rounded-lg py-1.5 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="">All Waste Types</option>
+                {wasteTypes &&
+                  wasteTypes.map((type) => (
+                    <option key={type.waste_type_id} value={type.name}>
+                      {type.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            {/* Priority Filter */}
+            <div className="mb-4">
+              <label
+                htmlFor="priority"
+                className="block text-xs font-medium text-gray-700 mb-1"
+              >
+                Priority
+              </label>
+              <select
+                id="priority"
+                value={filters.priority}
+                onChange={(e) => handleFilterChange("priority", e.target.value)}
+                className="w-full border border-gray-300 rounded-lg py-1.5 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="">All Priorities</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+
+            {/* Severity Filter */}
+            <div className="mb-4">
+              <label
+                htmlFor="severity"
+                className="block text-xs font-medium text-gray-700 mb-1"
+              >
+                Severity
+              </label>
+              <select
+                id="severity"
+                value={filters.severity}
+                onChange={(e) => handleFilterChange("severity", e.target.value)}
+                className="w-full border border-gray-300 rounded-lg py-1.5 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="">All Severities</option>
+                <option value="high">High (7-10)</option>
+                <option value="medium">Medium (4-7)</option>
+                <option value="low">Low (1-4)</option>
+              </select>
+            </div>
+
+            {/* Time Range Filter */}
+            <div className="mb-4">
+              <label
+                htmlFor="days"
+                className="block text-xs font-medium text-gray-700 mb-1"
+              >
+                Time Range
+              </label>
+              <div className="relative rounded-lg">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Clock className="h-4 w-4 text-gray-400" />
+                </div>
+                <select
+                  id="days"
+                  name="days"
+                  value={filters.days}
+                  onChange={(e) =>
+                    handleFilterChange("days", parseInt(e.target.value))
+                  }
+                  className="w-full border border-gray-300 rounded-lg py-1.5 pl-9 pr-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="7">Last 7 days</option>
+                  <option value="30">Last 30 days</option>
+                  <option value="90">Last 90 days</option>
+                  <option value="365">Last year</option>
+                  <option value="0">All time</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-between mt-4">
+              <button
+                onClick={clearFilters}
+                className="py-1.5 px-3 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Clear All
+              </button>
+              <button
+                onClick={applyFilters}
+                className="py-1.5 px-3 bg-emerald-600 border border-transparent rounded-lg text-xs font-medium text-white hover:bg-emerald-700 transition-colors"
+              >
+                Apply Filters
+              </button>
+            </div>
           </div>
-          <ChevronDown
-            className={`w-4 h-4 transition-transform ${
-              showFilters ? "rotate-180" : ""
-            }`}
-          />
-        </button>
+        )}
 
-        <button
-          onClick={handleRefresh}
-          disabled={refreshing || isLoading}
-          className="flex w-full items-center justify-center gap-2 px-3 py-2 bg-emerald-600 border border-transparent rounded-lg text-white hover:bg-emerald-700 transition-colors"
-        >
-          <RefreshCw
-            className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
-          />
-          {refreshing ? "Refreshing..." : "Refresh Map"}
-        </button>
-      </div>
-
-      {/* Filters Panel */}
-      {showFilters && (
-        <div className="p-4 border-b border-gray-200 overflow-y-auto">
-          <h2 className="text-sm font-medium text-gray-700 mb-3">
-            Filter Map Data
+        {/* Map Stats */}
+        <div className="p-4 mt-auto border-t border-gray-200">
+          <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
+            Map Statistics
           </h2>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3">
+                  <Layers className="w-4 h-4" />
+                </div>
+                <span className="text-sm text-gray-600">Reports</span>
+              </div>
+              <span className="text-sm font-semibold">
+                {formatNumber(mapStats.totalReports)}
+              </span>
+            </div>
 
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-600 mr-3">
+                  <AlertTriangle className="w-4 h-4" />
+                </div>
+                <span className="text-sm text-gray-600">Hotspots</span>
+              </div>
+              <span className="text-sm font-semibold">
+                {formatNumber(mapStats.totalHotspots)}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 mr-3">
+                  <Trash2 className="w-4 h-4" />
+                </div>
+                <span className="text-sm text-gray-600">High Severity</span>
+              </div>
+              <span className="text-sm font-semibold">
+                {formatNumber(mapStats.highSeverity)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Mobile Filters Bottom Sheet Component
+  const MobileFiltersModal = () => (
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        onClick={() => setShowMobileFilters(false)}
+      ></div>
+
+      {/* Bottom Sheet */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-lg shadow-lg z-50">
+        {/* Handle/drag indicator */}
+        <div className="flex justify-center pt-2 pb-1">
+          <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+        </div>
+
+        {/* Modal header */}
+        <div className="px-4 py-2 border-b border-gray-200 flex items-center justify-between">
+          <h2 className="text-lg font-medium text-gray-900 flex items-center">
+            <Filter className="w-5 h-5 mr-2 text-emerald-600" />
+            Map Filters
+          </h2>
+          <button
+            onClick={() => setShowMobileFilters(false)}
+            className="p-1 rounded-full hover:bg-gray-100 text-gray-500"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Modal body - scrollable content */}
+        <div className="p-4 overflow-y-auto max-h-[60vh]">
           {/* Status Filter */}
-          <div className="mb-4">
+          <div className="mb-6">
             <label
-              htmlFor="status"
-              className="block text-xs font-medium text-gray-700 mb-1"
+              htmlFor="mobile-status"
+              className="block text-sm font-medium text-gray-700 mb-2"
             >
               Status
             </label>
             <select
-              id="status"
+              id="mobile-status"
               value={filters.status}
               onChange={(e) => handleFilterChange("status", e.target.value)}
-              className="w-full border border-gray-300 rounded-lg py-1.5 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full border border-gray-300 rounded-lg py-3 px-4 text-base text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">All Statuses</option>
               <option value="pending">Pending</option>
@@ -376,18 +635,18 @@ export default function ModernMapPage() {
           </div>
 
           {/* Waste Type Filter */}
-          <div className="mb-4">
+          <div className="mb-6">
             <label
-              htmlFor="waste_type"
-              className="block text-xs font-medium text-gray-700 mb-1"
+              htmlFor="mobile-waste-type"
+              className="block text-sm font-medium text-gray-700 mb-2"
             >
               Waste Type
             </label>
             <select
-              id="waste_type"
+              id="mobile-waste-type"
               value={filters.waste_type}
               onChange={(e) => handleFilterChange("waste_type", e.target.value)}
-              className="w-full border border-gray-300 rounded-lg py-1.5 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full border border-gray-300 rounded-lg py-3 px-4 text-base text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">All Waste Types</option>
               {wasteTypes &&
@@ -400,18 +659,18 @@ export default function ModernMapPage() {
           </div>
 
           {/* Priority Filter */}
-          <div className="mb-4">
+          <div className="mb-6">
             <label
-              htmlFor="priority"
-              className="block text-xs font-medium text-gray-700 mb-1"
+              htmlFor="mobile-priority"
+              className="block text-sm font-medium text-gray-700 mb-2"
             >
               Priority
             </label>
             <select
-              id="priority"
+              id="mobile-priority"
               value={filters.priority}
               onChange={(e) => handleFilterChange("priority", e.target.value)}
-              className="w-full border border-gray-300 rounded-lg py-1.5 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full border border-gray-300 rounded-lg py-3 px-4 text-base text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">All Priorities</option>
               <option value="high">High</option>
@@ -421,18 +680,18 @@ export default function ModernMapPage() {
           </div>
 
           {/* Severity Filter */}
-          <div className="mb-4">
+          <div className="mb-6">
             <label
-              htmlFor="severity"
-              className="block text-xs font-medium text-gray-700 mb-1"
+              htmlFor="mobile-severity"
+              className="block text-sm font-medium text-gray-700 mb-2"
             >
               Severity
             </label>
             <select
-              id="severity"
+              id="mobile-severity"
               value={filters.severity}
               onChange={(e) => handleFilterChange("severity", e.target.value)}
-              className="w-full border border-gray-300 rounded-lg py-1.5 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full border border-gray-300 rounded-lg py-3 px-4 text-base text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">All Severities</option>
               <option value="high">High (7-10)</option>
@@ -442,25 +701,25 @@ export default function ModernMapPage() {
           </div>
 
           {/* Time Range Filter */}
-          <div className="mb-4">
+          <div className="mb-6">
             <label
-              htmlFor="days"
-              className="block text-xs font-medium text-gray-700 mb-1"
+              htmlFor="mobile-days"
+              className="block text-sm font-medium text-gray-700 mb-2"
             >
               Time Range
             </label>
             <div className="relative rounded-lg">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Clock className="h-4 w-4 text-gray-400" />
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Clock className="h-5 w-5 text-gray-400" />
               </div>
               <select
-                id="days"
+                id="mobile-days"
                 name="days"
                 value={filters.days}
                 onChange={(e) =>
                   handleFilterChange("days", parseInt(e.target.value))
                 }
-                className="w-full border border-gray-300 rounded-lg py-1.5 pl-9 pr-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full border border-gray-300 rounded-lg py-3 pl-12 pr-4 text-base text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
                 <option value="7">Last 7 days</option>
                 <option value="30">Last 30 days</option>
@@ -470,65 +729,28 @@ export default function ModernMapPage() {
               </select>
             </div>
           </div>
-
-          <div className="flex justify-between mt-4">
-            <button
-              onClick={clearFilters}
-              className="py-1.5 px-3 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              Clear All
-            </button>
-            <button
-              onClick={applyFilters}
-              className="py-1.5 px-3 bg-emerald-600 border border-transparent rounded-lg text-xs font-medium text-white hover:bg-emerald-700 transition-colors"
-            >
-              Apply Filters
-            </button>
-          </div>
         </div>
-      )}
 
-      {/* Map Stats */}
-      <div className="p-4 mt-auto border-t border-gray-200">
-        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
-          Map Statistics
-        </h2>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3">
-                <Layers className="w-4 h-4" />
-              </div>
-              <span className="text-sm text-gray-600">Reports</span>
-            </div>
-            <span className="text-sm font-semibold">
-              {formatNumber(mapStats.totalReports)}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-600 mr-3">
-                <AlertTriangle className="w-4 h-4" />
-              </div>
-              <span className="text-sm text-gray-600">Hotspots</span>
-            </div>
-            <span className="text-sm font-semibold">
-              {formatNumber(mapStats.totalHotspots)}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 mr-3">
-                <Trash2 className="w-4 h-4" />
-              </div>
-              <span className="text-sm text-gray-600">High Severity</span>
-            </div>
-            <span className="text-sm font-semibold">
-              {formatNumber(mapStats.highSeverity)}
-            </span>
-          </div>
+        {/* Modal footer - sticky at bottom */}
+        <div className="px-4 py-3 border-t border-gray-200 flex justify-between sticky bottom-0 bg-white">
+          <button
+            onClick={() => {
+              clearFilters();
+              setShowMobileFilters(false);
+            }}
+            className="py-2.5 px-4 border border-gray-300 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Clear
+          </button>
+          <button
+            onClick={() => {
+              applyFilters();
+              setShowMobileFilters(false);
+            }}
+            className="py-2.5 px-4 bg-emerald-600 border border-transparent rounded-lg text-base font-medium text-white hover:bg-emerald-700 transition-colors flex items-center"
+          >
+            Apply Filters
+          </button>
         </div>
       </div>
     </>
@@ -595,6 +817,9 @@ export default function ModernMapPage() {
         >
           <SidebarContent />
         </div>
+
+        {/* Mobile Filter Modal - only show when mobile filters are active */}
+        {showMobileFilters && <MobileFiltersModal />}
 
         {/* Main Map Content */}
         <div className="flex-1 relative">
