@@ -21,10 +21,10 @@ import {
   Crosshair,
   Check,
 } from "lucide-react";
-import ModernLayout from "../components/ModernLayout";
+import ModernLayout from "../components/Layout";
 
 // Dynamically import map component to prevent SSR issues
-const DynamicMap = dynamic(() => import("../components/ModernMap"), {
+const DynamicMap = dynamic(() => import("../components/Map"), {
   ssr: false,
   loading: () => (
     <div className="flex justify-center items-center h-[calc(100vh-200px)] bg-gray-50">
@@ -897,42 +897,6 @@ export default function ModernMapPage() {
                   {formatNumber(mapStats.highSeverity)}
                 </div>
                 <div className="text-gray-500">High Sev.</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Map Legend - Repositioned for mobile */}
-          <div className="absolute bottom-4 right-4 z-10 bg-white border border-gray-200 rounded-lg p-3 shadow-md max-w-[150px] md:max-w-none">
-            <div className="flex items-center mb-1">
-              <Info className="w-4 h-4 text-gray-500 mr-1" />
-              <h3 className="text-xs font-medium text-gray-700">Map Legend</h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 mt-2">
-              <div className="flex items-center">
-                <span className="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
-                <span className="text-xs text-gray-600">Resolved</span>
-              </div>
-              <div className="flex items-center">
-                <span className="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
-                <span className="text-xs text-gray-600">Pending</span>
-              </div>
-              <div className="flex items-center">
-                <span className="w-2 h-2 rounded-full bg-purple-500 mr-2"></span>
-                <span className="text-xs text-gray-600">Analyzing</span>
-              </div>
-              <div className="flex items-center">
-                <span className="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
-                <span className="text-xs text-gray-600">High Severity</span>
-              </div>
-              {focusedReport && (
-                <div className="flex items-center col-span-1 md:col-span-2">
-                  <span className="w-3 h-3 rounded-full bg-yellow-400 border-2 border-white shadow-md mr-2"></span>
-                  <span className="text-xs text-gray-600">Focused Report</span>
-                </div>
-              )}
-              <div className="flex items-center col-span-1 md:col-span-2 mt-1">
-                <span className="w-3 h-3 rounded-full border border-dashed border-red-500 mr-2"></span>
-                <span className="text-xs text-gray-600">Hotspot Zone</span>
               </div>
             </div>
           </div>

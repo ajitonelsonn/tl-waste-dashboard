@@ -1,7 +1,7 @@
 // pages/under-construction.js
 import Head from "next/head";
 import Link from "next/link";
-import ModernLayout from "../components/ModernLayout";
+import ModernLayout from "../components/Layout";
 import {
   Construction,
   Home,

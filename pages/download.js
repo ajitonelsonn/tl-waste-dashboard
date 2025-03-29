@@ -3,7 +3,7 @@ import { useState } from "react";
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
-import ModernLayout from "../components/ModernLayout";
+import ModernLayout from "../components/Layout";
 import {
   Download,
   Smartphone,

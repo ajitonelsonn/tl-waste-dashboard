@@ -24,8 +24,8 @@ import {
   Clipboard,
   Loader,
 } from "lucide-react";
-import ModernLayout from "../components/ModernLayout";
-import ModernPagination from "../components/ModernPagination";
+import ModernLayout from "../components/Layout";
+import ModernPagination from "../components/Pagination";
 
 export default function PublicReportsPage() {
   const router = useRouter();

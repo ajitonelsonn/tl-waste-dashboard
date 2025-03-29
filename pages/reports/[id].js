@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Link from "next/link";
-import ModernLayout from "../../components/ModernLayout";
+import ModernLayout from "../../components/Layout";
 import { fetchAPI } from "../../lib/api";
 import { ArrowLeft, MapPin, Calendar, AlertTriangle } from "lucide-react";
 

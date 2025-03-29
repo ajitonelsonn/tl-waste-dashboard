@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
-import Layout from "../components/ModernLayout";
+import Layout from "../components/Layout";
 import {
   useStatsOverview,
   useMapData,
@@ -22,8 +22,8 @@ import {
 } from "lucide-react";
 
 // Import the custom components we created
-import ModernTrendChart from "../components/ModernTrendChart";
-import ModernWasteTypeDistribution from "../components/ModernWasteTypeDistribution";
+import ModernTrendChart from "../components/TrendChart";
+import ModernWasteTypeDistribution from "../components/WasteTypeDistribution";
 
 // Loading components
 const LoadingAnimation = ({ text = "Loading data...", size = "md" }) => {
@@ -75,7 +75,7 @@ const SkeletonHotspot = () => (
 );
 
 // Dynamically import map component to prevent SSR issues
-const DynamicMap = dynamic(() => import("../components/ModernMap"), {
+const DynamicMap = dynamic(() => import("../components/Map"), {
   ssr: false,
   loading: () => <MapPlaceholder />,
 });

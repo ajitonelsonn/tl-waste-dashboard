@@ -18,9 +18,9 @@ import {
   ChevronDown,
   Filter,
 } from "lucide-react";
-import ModernLayout from "../components/ModernLayout";
+import ModernLayout from "../components/Layout";
 // Dynamically import map component to prevent SSR issues
-const DynamicHotspotMap = dynamic(() => import("../components/ModernMap"), {
+const DynamicHotspotMap = dynamic(() => import("../components/Map"), {
   ssr: false,
   loading: () => (
     <div className="flex justify-center items-center h-64">

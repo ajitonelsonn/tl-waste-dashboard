@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import ModernLayout from "../components/ModernLayout";
+import ModernLayout from "../components/Layout";
 import { useLeaderboard } from "../lib/api";
 import {
   Trophy,
@@ -19,7 +19,7 @@ import {
   BarChart2,
   FileText,
 } from "lucide-react";
-import ModernPagination from "../components/ModernPagination";
+import ModernPagination from "../components/Pagination";
 
 export default function LeaderboardPage() {
   const router = useRouter();
