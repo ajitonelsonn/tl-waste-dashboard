@@ -1,12 +1,8 @@
-// components/ModernPagination.js
+// components/Pagination.js
 import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function ModernPagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-}) {
+export default function Pagination({ currentPage, totalPages, onPageChange }) {
   // Don't render pagination if there's only one page
   if (totalPages <= 1) {
     return null;

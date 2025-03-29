@@ -1,4 +1,4 @@
-// components/ModernWasteTypeDistribution.js
+// components/WasteTypeDistribution.js
 import React from "react";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Pie } from "react-chartjs-2";
@@ -33,7 +33,7 @@ const BORDER_COLORS = [
   "rgba(234, 88, 12, 1)", // Orange 600
 ];
 
-export default function ModernWasteTypeDistribution({ data }) {
+export default function WasteTypeDistribution({ data }) {
   if (!data || Object.keys(data).length === 0) {
     return (
       <div className="flex justify-center items-center h-full">

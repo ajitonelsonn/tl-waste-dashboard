@@ -1,4 +1,4 @@
-// components/ModernLayout.js
+// components/Layout.js
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -11,12 +11,11 @@ import {
   X,
   ExternalLink,
   Sun,
-  User,
   Trophy,
   Download,
 } from "lucide-react";
 
-export default function ModernLayout({ children }) {
+export default function Layout({ children }) {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(false);

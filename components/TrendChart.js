@@ -1,4 +1,4 @@
-// components/ModernTrendChart.js
+// components/TrendChart.js
 import React from "react";
 import {
   Chart as ChartJS,
@@ -24,7 +24,7 @@ ChartJS.register(
   Filler
 );
 
-export default function ModernTrendChart({ data }) {
+export default function TrendChart({ data }) {
   if (!data || data.length === 0) {
     return (
       <div className="flex justify-center items-center h-full">

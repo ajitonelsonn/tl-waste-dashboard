@@ -1,4 +1,4 @@
-// components/ModernMap.js
+// components/Map.js
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -62,18 +62,38 @@ const formatNumber = (value, decimals = 1) => {
   return !isNaN(num) ? num.toFixed(decimals) : "N/A";
 };
 
-const ModernMap = ({
+const Map = ({
   data,
   simplified = false,
   selectedHotspot = null,
   onHotspotSelect,
-  focusedReportId = null, // New parameter for focused report
+  focusedReportId = null,
 }) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const [showLegend, setShowLegend] = useState(true);
   const markersRef = useRef([]);
   const circlesRef = useRef([]);
+  const [isMobile, setIsMobile] = useState(false);
+  const legendControlRef = useRef(null);
+
+  // Check for mobile view
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Initial check
+    checkIfMobile();
+
+    // Add event listener for resize
+    window.addEventListener("resize", checkIfMobile);
+
+    // Clean up
+    return () => {
+      window.removeEventListener("resize", checkIfMobile);
+    };
+  }, []);
 
   useEffect(() => {
     // Fix for Leaflet's default icon issue
@@ -126,49 +146,8 @@ const ModernMap = ({
           .addTo(mapInstanceRef.current);
       }
 
-      // Add a legend control
-      if (!simplified) {
-        const legendControl = L.control({ position: "bottomright" });
-        legendControl.onAdd = function () {
-          const div = L.DomUtil.create(
-            "div",
-            "legend bg-white p-3 rounded-lg shadow-md text-sm"
-          );
-          div.innerHTML = `
-            <h4 class="font-medium mb-2">Map Legend</h4>
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <span style="background-color: #10B981; width: 10px; height: 10px; border-radius: 50%; display: inline-block"></span>
-                <span>Resolved</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <span style="background-color: #F59E0B; width: 10px; height: 10px; border-radius: 50%; display: inline-block"></span>
-                <span>Medium Severity</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <span style="background-color: #EF4444; width: 10px; height: 10px; border-radius: 50%; display: inline-block"></span>
-                <span>High Severity</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <span style="background-color: #8B5CF6; width: 10px; height: 10px; border-radius: 50%; display: inline-block"></span>
-                <span>Analyzing</span>
-              </div>
-              ${
-                focusedReportId
-                  ? `
-              <div class="flex items-center gap-2">
-                <span style="background-color: gold; width: 10px; height: 10px; border: 2px solid #fff; border-radius: 50%; display: inline-block; box-shadow: 0 0 4px rgba(0,0,0,0.3);"></span>
-                <span>Focused Report</span>
-              </div>
-              `
-                  : ""
-              }
-            </div>
-          `;
-          return div;
-        };
-        legendControl.addTo(mapInstanceRef.current);
-      }
+      // Add the legend control - We'll handle this separately based on showLegend state
+      addLegendControl();
     }
 
     return () => {
@@ -178,7 +157,87 @@ const ModernMap = ({
         mapInstanceRef.current = null;
       }
     };
-  }, [simplified, focusedReportId]);
+  }, [simplified]);
+
+  // Function to add/remove legend control based on showLegend state
+  const addLegendControl = () => {
+    if (!mapInstanceRef.current) return;
+
+    // Remove existing legend if it exists
+    if (legendControlRef.current) {
+      legendControlRef.current.remove();
+      legendControlRef.current = null;
+    }
+
+    // Only add legend if showLegend is true
+    if (showLegend) {
+      const legendControl = L.control({
+        position: isMobile ? "bottomleft" : "bottomright",
+      });
+
+      legendControl.onAdd = function () {
+        const div = L.DomUtil.create(
+          "div",
+          "legend bg-white p-3 rounded-lg shadow-md"
+        );
+
+        div.style.cssText =
+          "background: white; padding: 8px; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.2); max-width: 200px; font-size: 12px;";
+
+        div.innerHTML = `
+          <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            Map Legend
+          </div>
+          <div style="display: grid; gap: 4px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="background-color: #10B981; width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 1px solid white;"></span>
+              <span>Resolved</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="background-color: #3B82F6; width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 1px solid white;"></span>
+              <span>Pending</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="background-color: #8B5CF6; width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 1px solid white;"></span>
+              <span>Analyzing</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="background-color: #F59E0B; width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 1px solid white;"></span>
+              <span>Medium Severity</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="background-color: #EF4444; width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 1px solid white;"></span>
+              <span>High Severity</span>
+            </div>
+            ${
+              focusedReportId
+                ? `
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="background-color: gold; width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.3);"></span>
+                  <span>Focused Report</span>
+                </div>
+                `
+                : ""
+            }
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+              <span style="width: 12px; height: 12px; border-radius: 50%; border: 1px dashed #EF4444; display: inline-block;"></span>
+              <span>Hotspot Zone</span>
+            </div>
+          </div>
+        `;
+        return div;
+      };
+
+      legendControl.addTo(mapInstanceRef.current);
+      legendControlRef.current = legendControl;
+    }
+  };
+
+  // Update legend when showLegend changes
+  useEffect(() => {
+    addLegendControl();
+  }, [showLegend, isMobile, focusedReportId]);
 
   // Update markers when data changes
   useEffect(() => {
@@ -473,7 +532,8 @@ const ModernMap = ({
       <button
         onClick={() => setShowLegend((prev) => !prev)}
         className="bg-white p-2 rounded-full shadow-md hover:bg-gray-50 transition-colors"
-        title="Toggle legend"
+        title={showLegend ? "Hide legend" : "Show legend"}
+        aria-label={showLegend ? "Hide legend" : "Show legend"}
       >
         <Info className="w-5 h-5 text-gray-700" />
       </button>
@@ -523,4 +583,4 @@ const ModernMap = ({
   );
 };
 
-export default ModernMap;
+export default Map;
