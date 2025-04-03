@@ -22,7 +22,7 @@ export default function DownloadApp() {
   const downloadLinks = {
     android:
       "https://drive.google.com/drive/folders/1O2CP7oY6aVZOTpRaTXd6RO8T1DjITV4p?usp=sharing",
-    ios: "https://drive.google.com/drive/folders/1O2CP7oY6aVZOTpRaTXd6RO8T1DjITV4p?usp=sharing",
+    ios: "/uc",
     direct:
       "https://drive.google.com/drive/folders/1O2CP7oY6aVZOTpRaTXd6RO8T1DjITV4p?usp=sharing",
   };
@@ -111,11 +111,12 @@ export default function DownloadApp() {
                   className="flex items-center justify-center gap-2 py-3 px-6 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium shadow-sm mx-auto"
                 >
                   <Download className="w-5 h-5" />
-                  Download for {activeTab === "android" ? "Android" : "iOS"}
+                  Download for{" "}
+                  {activeTab === "android" ? "Android" : "iOS SOON"}
                 </a>
 
                 <div className="mt-4 text-sm text-gray-500">
-                  Version 1.1.1 • Released March 19, 2025
+                  Version 1.1.1 • Released March 29, 2025
                 </div>
 
                 <div className="mt-6">
