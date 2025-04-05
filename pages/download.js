@@ -21,10 +21,10 @@ export default function DownloadApp() {
   // App download links
   const downloadLinks = {
     android:
-      "https://drive.google.com/drive/folders/1O2CP7oY6aVZOTpRaTXd6RO8T1DjITV4p?usp=sharing",
+      "https://drive.google.com/file/d/1h9KIEqflPIV5HiX68AEpg9RXmF7BBw-y/view",
     ios: "/uc",
     direct:
-      "https://drive.google.com/drive/folders/1O2CP7oY6aVZOTpRaTXd6RO8T1DjITV4p?usp=sharing",
+      "https://drive.google.com/file/d/1h9KIEqflPIV5HiX68AEpg9RXmF7BBw-y/view",
   };
 
   return (
