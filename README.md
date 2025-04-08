@@ -168,14 +168,8 @@ This project was developed for the Global AI Agents League Hackathon.
 
 For questions or support, please open an issue on GitHub
 
-The Idea to for create this TL Digital Waste Monitoring Network project is because there are already have many garbage place arroun the dili but citizent always littering like in the image /msampah.jpg dan membuat flooded every time it rains a lot like in the picture /bajirtl.jpg or in the youtube video https://www.youtube.com/watch?v=2D1AoKoEOr4 and I did some research and found a file at https://www.jica.go.jp/english/overseas/easttimor/data/__icsFiles/afieldfile/2024/11/30/Dili_SWM_Presentation_Material_English_2.pdf they made a survey DATA COLLECTION SURVEY
-ON
-SOLID WASTE MANAGEMENT IN DILI MUNICIPALITY
-FOR
-REDUCING MARINE PLASTIC WASTE IN TIMOR-LESTE but there are always people who litter, so from there I made this project to be able to help so that the community can report the existing waste so that we can know which areas have too much waste. and also this competition is very good for me to be able to use ai technology such as asi1.ai and https://agentverse.ai which is very easy to integrate ai so that there is no manipulation.
+The idea to create this TL Digital Waste Monitoring Network project is because there are already many trash bins around Dili but residents always litter and cause flooding every time it rains heavily like this youtube video https://www.youtube.com/watch?v=2D1AoKoEOr4 and I did some research and found a file at https://www.jica.go.jp/english/overseas/easttimor/data/__icsFiles/afieldfile/2024/11/30/Dili_SWM_Presentation_Material_English_2.pdf they created a survey DATA COLLECTION SURVEY
+SOLID WASTE MANAGEMENT IN DILI CITY
+TO REDUCE MARINE PLASTIC WASTE IN TIMOR-LESTE but there are always people who litter, so I created this project to help the community report the existing waste so that we can find out which areas have too much waste. And also this competition is very good for me to be able to use ai technology like asi1.ai and https://agentverse.ai which is very easy to integrate ai so there is no manipulation.
 
-for the future in this project
-I will continue the application and promote it to the government because ai is also new in Timor-Leste.
-so that every month there is a prize for the community who makes a report
-
-and make 1 more agent and 1 mobile application to collect garbage that is reported by the community
+For the future of this project, I will continue the application and promote it to the government because AI is also new in Timor Leste. So that every month there is a prize for the community who makes a report and creates 1 more agent and 1 mobile application to collect waste reported by the community
