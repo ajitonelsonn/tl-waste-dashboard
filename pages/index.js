@@ -319,7 +319,7 @@ export default function ModernDashboard() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Map Section - Takes 2/3 of the width */}
-          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col">
             <div className="p-4 border-b border-gray-100 flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-emerald-600" />
@@ -334,7 +334,8 @@ export default function ModernDashboard() {
                 View Full Map <ArrowUpRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="h-[400px]">
+            {/* Increased height with min-height for better display */}
+            <div className="h-[550px] min-h-[500px] w-full">
               {mapLoading ? (
                 <MapPlaceholder />
               ) : (
